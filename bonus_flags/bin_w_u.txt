@@ -1,0 +1,6 @@
+                 U exit@GLIBC_2.2.5
+                 w __gmon_start__
+                 U __libc_start_main@GLIBC_2.34
+                 U puts@GLIBC_2.2.5
+                 U strlen@GLIBC_2.2.5
+                 U write@GLIBC_2.2.5

@@ -22,7 +22,11 @@ NAME := ft_nm
 all: ${NAME}
 
 ${NAME}: ${OBJ}
-	${CC} ${CFLAGS} -o ${NAME} ${IFLAGS}
+	${CC} ${CFLAGS} $^ -o $@ ${IFLAGS}
+
+${OBJ_DIR}%.o:  ${SRC_DIR}%.c | ${OBJ_DIR}
+	${CC} ${CFLAGS} -c $< -o $@ ${IFLAGS}
+
 
 ${OBJ_DIR}:
 	mkdir -v ${OBJ_DIR}
