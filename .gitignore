@@ -1,0 +1,15 @@
+# binary
+ft_nm
+
+# object files
+obj
+*/*.o
+
+# local docs
+notas.md
+
+# ide
+.idea
+
+# test
+bin
