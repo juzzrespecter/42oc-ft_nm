@@ -1,7 +1,9 @@
 # ~ Project dependencies ~
 
 SRC := nm.c \
-       utils.c
+       utils.c \
+       arg_parser.c \
+       elf_parser.c
 INCLUDE := nm.h
 
 SRC_DIR := src/

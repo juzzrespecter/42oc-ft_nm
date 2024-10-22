@@ -18,4 +18,7 @@ typedef struct s_context
   char    flags;
 } t_context;
 
+void arg_parser(t_context*, char**);
+void elf_parser(t_context*);
+
 #endif //NM_H

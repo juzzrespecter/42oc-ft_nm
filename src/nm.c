@@ -47,7 +47,7 @@ void check_variables(t_context* ctx)
   t_list *test = ctx->bin;
   while (test)
   {
-    printf(test->content);
+    printf("%s\n", (char*)test->content);
     test = test->next;
   }
 }
@@ -61,7 +61,13 @@ void print_usage_and_exit()
   exit(EXIT_FAILURE);
 }
 
-int parse_args(t_context* ctx, int argc, char* argv[])
+void parse_hyphen(t_context* ctx, char *argv[])
+{
+  (void) ctx;
+  (void) argv;
+}
+
+void parse_args(t_context* ctx, int argc, char* argv[])
 {
   const char* valid_arguments[5][2] = {
     {"-a", "--debug-syms"},
@@ -80,14 +86,12 @@ int parse_args(t_context* ctx, int argc, char* argv[])
 
   if (argc < 2)
   {
-    // default mode becomes a.out no flags
+    ctx->bin = ft_lstnew("a.out");
+    return ;
   }
 
-  //int i = 1;
   while (*argv)
   {
-    // if hyphen, flag
-    // else, binary to list
     if (*argv[0] == '-')
     {
       for (int i = 0; i < 5; i++)
@@ -103,15 +107,19 @@ int parse_args(t_context* ctx, int argc, char* argv[])
           break ;
         }
       }
+      //write(STDERR_FILENO, "nm: invalid option --")
       print_usage_and_exit();
     }
     else
     {
       ft_lstadd_back(&ctx->bin, ft_lstnew(*argv));
     }
-    // print usage with invalid hyphen lead arg
+    argv++;
   }
-  return 2;
+  if (ctx->bin == NULL)
+  {
+    ctx->bin = ft_lstnew("a.out");
+  }
 }
 
 int main(int argc, char* argv[])
@@ -119,5 +127,6 @@ int main(int argc, char* argv[])
   t_context ctx;
 
   ft_bzero(&ctx, sizeof(ctx));
-  parse_args(&ctx, argc, ++argv);
+  parse_args(&ctx, argc, argv);
+  check_variables(&ctx);
 }
