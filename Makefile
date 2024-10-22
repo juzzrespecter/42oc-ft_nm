@@ -1,40 +1,55 @@
-SRC := nm.c
+# ~ Project dependencies ~
+
+SRC := nm.c \
+       utils.c
 INCLUDE := nm.h
 
 SRC_DIR := src/
-INCLUDE_DIR := include/
+INCLUDE_DIR := include/ \
+               libft/includes/
 OBJ_DIR := obj/
+OBJ = ${SRC:%.c=${OBJ_DIR}%.o}
 
-vpath %.c src
-vpath %.h include
+LIBFT_DIR := libft/
 
+vpath %.c src/
+vpath %.h include/
+
+# ~ Compilation variables ~
 CC := gcc
 CFLAGS = -Wall -Werror -Wextra
 ifdef DEBUG
     CFLAGS += -fsanitize=address -g3
 endif
-IFLAGS := -I ${INCLUDE_DIR}
+IFLAGS := $(addprefix -I, ${INCLUDE_DIR})
+LFLAGS := -lft -L${LIBFT_DIR}
 
-OBJ = ${SRC:%.c=${OBJ_DIR}%.o}
+LIBFT     := ${addprefix ${LIBFT_DIR}, libft.a}
+
+RM := rm -rfv
 
 NAME := ft_nm
 
+# ~ Rules ~
+
 all: ${NAME}
 
-${NAME}: ${OBJ}
-	${CC} ${CFLAGS} $^ -o $@ ${IFLAGS}
+${NAME}: ${OBJ} ${LIBFT}
+	${CC} ${CFLAGS} $^ -o $@ ${IFLAGS} ${LFLAGS}
 
 ${OBJ_DIR}%.o:  ${SRC_DIR}%.c | ${OBJ_DIR}
 	${CC} ${CFLAGS} -c $< -o $@ ${IFLAGS}
 
-
 ${OBJ_DIR}:
 	mkdir -v ${OBJ_DIR}
 
+${LIBFT}:
+	make -C ${LIBFT_DIR}
+
 clean:
-	rm -v ${OBJ}
+	${RM} ${OBJ}
 
 fclean: clean
-	rm -v ${NAME}
+	${RM} ${NAME}
 
 re: fclean all
