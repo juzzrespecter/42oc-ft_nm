@@ -21,38 +21,43 @@ static void print_usage_and_exit()
 {
     static const char* usage =
       "usage: nm  [option(s)] [file(s)]\n"
-      " List symbols in [file(s)] (a.out by default)."
-      "  The options are:"
-      "     -a, --debug-syms       Display debugger-only symbols"
-      "     -g, --extern-only      Display only external symbols"
-      "     -u, --undefined-only   Display only undefined symbols"
-      "     -r, --reverse-sort     Reverse the sense of the sort"
-      "     -p, --no-sort          Do not sort the symbols";
+      "List symbols in [file(s)] (a.out by default).\n"
+      "  The options are:\n"
+      "     -a, --debug-syms       Display debugger-only symbols\n"
+      "     -g, --extern-only      Display only external symbols\n"
+      "     -u, --undefined-only   Display only undefined symbols\n"
+      "     -r, --reverse-sort     Reverse the sense of the sort\n"
+      "     -p, --no-sort          Do not sort the symbols\n";
 
     write(STDIN_FILENO, usage, ft_strlen(usage));
     exit(EXIT_FAILURE);
 }
 
-static void parse_args_hyphen(t_context* ctx, char *arg)
+static void arg_parser_hyphen(t_context* ctx, char *arg)
 {
-    for (int i = 0; i < 5; i++)
+    int i = 0;
+
+    for (; i < 5; i++)
     {
         const char* f_short = valid_arguments[i][0];
         const char* f_long = valid_arguments[i][1];
         const size_t len = ft_strlen(arg);
 
-        if (ft_strncmp(arg, f_short, len) ||
-          ft_strncmp(arg, f_long, len))
+        if (!ft_strncmp(arg, f_short, len + 1) ||
+            !ft_strncmp(arg, f_long, len + 1))
         {
             ctx->flags = ctx->flags | set[i];
             break ;
         }
     }
-    // print error
-    print_usage_and_exit();
+    if (i == 5)
+    {
+        // print error
+        print_usage_and_exit();
+    }
 }
 
-void parse_args(t_context* ctx, int argc, char* argv[])
+void arg_parser(t_context* ctx, int argc, char* argv[])
 {
     if (argc < 2)
     {
@@ -63,7 +68,7 @@ void parse_args(t_context* ctx, int argc, char* argv[])
     while (*(++argv))
     {
       if (*argv[0] == '-') {
-        parse_args_hyphen(ctx, *argv);
+        arg_parser_hyphen(ctx, *argv);
         continue ;
       }
       ft_lstadd_back(&ctx->bin, ft_lstnew(*argv));
