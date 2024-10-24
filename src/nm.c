@@ -59,4 +59,5 @@ int main(int argc, char* argv[])
   ft_bzero(&ctx, sizeof(ctx));
   arg_parser(&ctx, argc, argv);
   check_variables(&ctx);
+  routine(&ctx);
 }

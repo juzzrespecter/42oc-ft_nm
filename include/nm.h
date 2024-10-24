@@ -18,6 +18,19 @@ typedef struct s_context
   char    flags;
 } t_context;
 
+// estructura lista de simbolos
+typedef struct s_symbol
+{
+
+};
+
+// estructura parseo de archivo
+typedef struct s_file
+{
+
+  t_list* symbol_lst;
+};
+
 void arg_parser(t_context*, int, char**);
 void elf_parser(t_context*);
 
