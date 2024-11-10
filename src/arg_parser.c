@@ -20,7 +20,7 @@ static const char set[5] = {
 static void print_usage_and_exit()
 {
     static const char* usage =
-      "usage: nm  [option(s)] [file(s)]\n"
+      "usage: ft_nm [option(s)] [file(s)]\n"
       "List symbols in [file(s)] (a.out by default).\n"
       "  The options are:\n"
       "     -a, --debug-syms       Display debugger-only symbols\n"
@@ -41,10 +41,10 @@ static void arg_parser_hyphen(t_context* ctx, char *arg)
     {
         const char* f_short = valid_arguments[i][0];
         const char* f_long = valid_arguments[i][1];
-        const size_t len = ft_strlen(arg);
+        const size_t len = ft_strlen(arg) + 1;
 
-        if (!ft_strncmp(arg, f_short, len + 1) ||
-            !ft_strncmp(arg, f_long, len + 1))
+        if (!ft_strncmp(arg, f_short, len) ||
+            !ft_strncmp(arg, f_long, len))
         {
             ctx->flags = ctx->flags | set[i];
             break ;
@@ -64,7 +64,6 @@ void arg_parser(t_context* ctx, int argc, char* argv[])
         ctx->bin = ft_lstnew("a.out");
         return ;
     }
-
     while (*(++argv))
     {
       if (*argv[0] == '-') {

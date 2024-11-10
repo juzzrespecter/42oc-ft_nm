@@ -6,6 +6,7 @@
 # include <stdint.h>
 # include <sys/stat.h>
 # include <unistd.h>
+# include <stdbool.h>
 # include <stdio.h> // to remove
 
 # define DEBUG_SYMS_F 1
@@ -14,7 +15,16 @@
 # define NO_SORT_F    (1<<3)
 # define REV_SORT_F   (1<<4)
 
-// faltan macros de tipos
+typedef struct stat t_stat;
+
+typedef enum e_retval
+{
+  NO_ERR = -1,
+  ERR_NOSYM = 0,
+  ERR_NOFILE = 1,
+  ERR_DIR = 2,
+  ERR_NOFMT = 3
+} retval;
 
 typedef struct s_context
 {
@@ -22,12 +32,43 @@ typedef struct s_context
   char    flags;
 } t_context;
 
+/* ELF file identification */
+# define EI_MAG0 0
+# define EI_MAG1 1
+# define EI_MAG2 2
+# define EI_MAG3 3
+# define EI_CLASS 4
+# define EI_DATA 5
+# define EI_VERSION 6
+
+# define EI_NIDENT 16
+
+enum e_elfmag
+{
+  ELFMAG0 = 0x7f,
+  ELFMAG1 = 0x45,
+  ELFMAG2 = 0x4c,
+  ELFMAG3 = 0x46
+};
+
+typedef enum e_ei_class
+{
+  ELFCLASSNONE = 0,
+  ELFCLASS32 = 1,
+  ELFCLASS64 = 2
+} ei_class;
+
+typedef enum e_ei_encode
+{
+  ELFDATANONE = 0,
+  ELFDATA2LSB = 1,
+  ELFDATA2MSB = 2
+} ei_encode;
+
 # define ELF64_ST_BIND(info)    ((info) >> 4)
 # define ELF64_ST_TYPE(info)    ((info) & 0xf)
 
 # define ELF64_ST_VISIBILITY(oth)    ((oth) & 0x3)
-
-typedef struct stat t_stat;
 
 // elf32 type definitions
 typedef uint16_t t_Elf32_Half;
@@ -62,9 +103,9 @@ typedef struct s_Elf64_Sym
   t_Elf64_Xword st_size;
 } t_Elf64_Sym;
 
-// estructura parseo de archivo
-# define EI_NIDENT 16 // 32 y 64 ??
-enum e_type
+
+
+typedef enum e_e_type
 {
   ET_NONE = 0,        // No file type
   ET_REL = 1,         // Relocatable file
@@ -73,7 +114,7 @@ enum e_type
   ET_CORE = 4,        // Core file
   ET_LOPROC = 0xff00, // Processor-specific
   ET_HIPROC = 0xffff  // Processor-specific
-};
+} e_type;
 
 typedef struct s_Elf32_Hdr
 {
@@ -111,16 +152,19 @@ typedef struct s_Elf64_Hdr
   t_Elf64_Half  e_shstrndx;
 } t_Elf64_Hdr;
 
-typedef struct s_file
+typedef struct s_bin
 {
+  ei_class  class;
+  ei_encode encoding;
+  void*     elf_hdr;
+  t_list*   symbol_lst;
+} t_bin;
 
-  t_list* symbol_lst;
-} t_file;
-
-void arg_parser(t_context*, int, char**);
-void elf_parser(t_context*);
+void   arg_parser(t_context*, int, char**);
+retval parser_elf(int fd, t_context*);
 
 int loader(t_context*);
-void routine(t_context*);
+
+void log_error(retval, char*);
 
 #endif //NM_H
