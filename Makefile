@@ -4,7 +4,7 @@ SRC := nm.c \
        utils.c \
        arg_parser.c \
        elf_parser.c \
-       loader.c
+       elf_section_parser.c
 INCLUDE := nm.h
 
 SRC_DIR := src/
