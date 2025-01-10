@@ -16,8 +16,14 @@ static bool __parser_identity_fields(char *ei_ident)
       (ei_ident[EI_DATA] != ELFDATA2LSB && ei_ident[EI_DATA] != ELFDATA2MSB));
 }
 
-//* Saves into bin context structure parsing values.
-
+/**
+ * Parses ELF header identity, saves encoding, class and version into
+ * the binary context structure, no matter what format it is.
+ *
+ * @param bin Current binary context
+ * @param ctx Global context
+ * @return true if success, false if could not read identity bytes from binary
+ */
 static bool __parser_elf_header_ident(t_bin* bin, t_nm *ctx)
 {
   char    ei_ident[EI_NIDENT];
@@ -46,38 +52,19 @@ static bool __parser_elf_header_ident(t_bin* bin, t_nm *ctx)
   return true;
 }
 
-/* de momento txdo en 64, pensar forma de generalizar */
-
 /**
-*  ELF file header parser.
+*  Parses ei_ident section of the ELF header, then selects the actual architecture
+*  of the binary and calls the correct class function.
 *
 * @param bin: current binary context.
 * @param ctx: program context.
 */
 void parser_elf(t_bin* bin, t_nm* ctx)
 {
-  void     *hdr_ptr;
-  uint32_t  version;
-
   if (!__parser_elf_header_ident(bin, ctx))
     return ;
-  hdr_ptr = mmap((void *)0, sizeof(t_Elf64_Hdr), PROT_WRITE, MAP_PRIVATE, bin->b_fd, 0);
-  if (hdr_ptr == MAP_FAILED)
-    log_and_exit(ERR_SYS, NULL, ctx);
-
-  version = ((t_Elf64_Hdr *)hdr_ptr)->e_version;
-
-  bin->shoff = ((t_Elf64_Hdr *)hdr_ptr)->e_shoff;
-  bin->shnum = ((t_Elf64_Hdr *)hdr_ptr)->e_shnum;
-  bin->shentsize = ((t_Elf64_Hdr *)hdr_ptr)->e_shentsize;
-  bin->shstrndx = ((t_Elf64_Hdr *)hdr_ptr)->e_shstrndx;
-
-  munmap(hdr_ptr, sizeof(t_Elf64_Hdr));
-  if (version != bin->b_version)
-  {
-    log_error(ERR_NO_FORMAT, bin->b_path);
-    return;
-  }
-  PRINT_HEADER((t_Elf64_Hdr *)hdr_ptr);
-  parser_elf_section(bin, ctx);
+  if (bin->b_class == ELFCLASS32)
+    parser_elf_hdr_x32(bin, ctx);
+  else if (bin->b_class == ELFCLASS64)
+    parser_elf_hdr_x64(bin, ctx);
 }

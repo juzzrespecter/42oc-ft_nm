@@ -68,6 +68,8 @@ typedef enum e_ei_encode
 
 # define ELF64_ST_VISIBILITY(oth)    ((oth) & 0x3)
 
+/* https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.intro.html#data_representation */
+
 // elf32 type definitions
 typedef uint16_t t_Elf32_Half;
 typedef uint32_t t_Elf32_Word;
@@ -81,26 +83,6 @@ typedef uint64_t t_Elf64_Addr;
 typedef uint64_t t_Elf64_Off;
 typedef uint64_t t_Elf64_Xword;
 
-// estructura lista de simbolos
-typedef struct s_Elf32_Sym
-{
-  t_Elf32_Word st_name;
-  t_Elf32_Addr st_value;
-  t_Elf32_Word st_size;
-  unsigned char st_info;
-  unsigned char st_other;
-  t_Elf32_Half st_shndx;
-} t_Elf32_Sym;
-
-typedef struct s_Elf64_Sym
-{
-  t_Elf64_Word st_name;
-  unsigned char st_info;
-  unsigned char st_other;
-  t_Elf64_Half st_shndx;
-  t_Elf64_Xword st_size;
-} t_Elf64_Sym;
-
 typedef enum e_e_type
 {
   ET_NONE = 0, // No file type
@@ -112,74 +94,80 @@ typedef enum e_e_type
   ET_HIPROC = 0xffff // Processor-specific
 } e_type;
 
-typedef struct s_Elf32_Hdr
-{
-  unsigned char e_ident[EI_NIDENT];
-  t_Elf32_Half e_type;
-  t_Elf32_Half e_machine;
-  t_Elf32_Word e_version;
-  t_Elf32_Addr e_entry;
-  t_Elf32_Off e_phoff;
-  t_Elf32_Off e_shoff;
-  t_Elf32_Word e_flags;
-  t_Elf32_Half e_ehsize;
-  t_Elf32_Half e_phentsize;
-  t_Elf32_Half e_phnum;
-  t_Elf32_Half e_shentsize;
-  t_Elf32_Half e_shnum;
-  t_Elf32_Half e_shstrndx;
-} t_Elf32_Hdr;
+/* https://refspecs.linuxbase.org/elf/gabi4+/ch4.sheader.html */
 
-typedef struct s_Elf64_Hdr
+typedef enum e_sh_type
 {
-  unsigned char e_ident[EI_NIDENT];
-  t_Elf64_Half e_type;
-  t_Elf64_Half e_machine;
-  t_Elf64_Word e_version;
-  t_Elf64_Addr e_entry;
-  t_Elf64_Off e_phoff;
-  t_Elf64_Off e_shoff;
-  t_Elf64_Word e_flags;
-  t_Elf64_Half e_ehsize;
-  t_Elf64_Half e_phentsize;
-  t_Elf64_Half e_phnum;
-  t_Elf64_Half e_shentsize;
-  t_Elf64_Half e_shnum;
-  t_Elf64_Half e_shstrndx;
-} t_Elf64_Hdr;
+  SHT_NULL = 0, // Inactive section header
+  SHT_PROGBITS = 1, // Defined by program
+  SHT_SYMTAB = 2, // Symbol table (symbols for link editing)
+  SHT_STRTAB = 3, // String table
+  SHT_RELA = 4, // Relocation entries
+  SHT_HASH = 5, // Symbol hash table
+  SHT_DYNAMIC = 6, // Information for dynamic linking
+  SHT_NOTE = 7, // Information mark file
+  SHT_NOBITS = 8, // Section occupies no space in file
+  SHT_REL = 9, // Relocation entries w/o explicit addend
+  SHT_SHLIB = 10, // Reserved
+  SHT_DYNSYM = 11, // Symbol table (dynamic linking)
+  SHT_INIT_ARRAY = 14, // Array of pointers to initialization functions
+  SHT_FINI_ARRAY = 15, // Array of pointers to termination functions
+  SHT_PREINIT_ARRAY = 16, // Array of pointers to functions that are invoked before all other init. functions
+  SHT_GROUP = 17, // Defines a section group
+  SHT_SYMTAB_SHNDX = 18, // Associated with SHT_SYMTAB section
+  SHT_LOPROC = 0x70000000, // Processor specific semantics
+  SHT_HIPROC = 0x7fffffff, // ...
+  SHT_LOUSER = 0x80000000, // Lower bound of indexes reserved for application programs
+  SHT_HIUSER = 0xffffffff // Higher bound of above
+} sh_type;
 
-typedef struct s_Elf32_Shdr
+typedef enum e_sh_flags
 {
-  t_Elf32_Word sh_name;
-  t_Elf32_Word sh_type;
-  t_Elf32_Word sh_flags;
-  t_Elf32_Addr sh_addr;
-  t_Elf32_Off sh_offset;
-  t_Elf32_Word sh_size;
-  t_Elf32_Word sh_link;
-  t_Elf32_Word sh_info;
-  t_Elf32_Word sh_addralign;
-  t_Elf32_Word sh_entsize;
-} t_Elf32_Shdr;
+  SHF_WRITE = 1, // Data writable during process exec.
+  SHF_ALLOC = (1<<1), // Section occupies memory during process exec.
+  SHF_EXECINSTR = (1<<2), // Executable machine isntructions
+  SHF_MERGE = (1<<5), // May be merged to eliminate duplication
+  SHF_STRING = (1<<6), // Data elements in section consist of null-terminated char. strings
+  SHF_INFO_LINK = (1<<7), // sh_info holds a section header table index
+  SHF_LINK_ORDER = (1<<8), // Special order requirements for linking
+  SHF_OS_NONCONFORMING = (1<<9), // Special OS_specific processing (sh_type, sh_flags in OS-specific ranges validation)
+  SHF_GROUP = (1<<10), // Member of a section group (e_type must be set to ET_REL)
+  SHF_TLS = (1<<11), // Holds thread-localstorage
+  SHF_MASKOS = 0x0ff00000, // Reserved for os-specific semantics
+  SHF_MASKPROC = 0xf0000000 // Reserved for processor-specific semantics
+} sh_flags;
 
-typedef struct s_Elf64_Shdr
+typedef enum e_st_bind
 {
-  t_Elf64_Word sh_name;
-  t_Elf64_Word sh_type;
-  t_Elf64_Word sh_flags;
-  t_Elf64_Addr sh_addr;
-  t_Elf64_Off sh_offset;
-  t_Elf64_Word sh_size;
-  t_Elf64_Word sh_link;
-  t_Elf64_Word sh_info;
-  t_Elf64_Word sh_addralign;
-  t_Elf64_Word sh_entsize;
-} t_Elf64_Shdr;
+  STB_LOCAL = 0,   // Symbol is local (not visible outisde object)
+  STB_GLOBAL = 1,  // Symbol is global (satisfies all file's reference)
+  STB_WEAK = 2,    // Symbol is weak (lower precedence than local)
+  STB_LOOS = 10,   // Lower bound for OS-specific semantics
+  STB_HIOS = 12,   // Higher bound for OS-specific semantics
+  STB_LOPROC = 13, // Lower bound for processor-specific semantics
+  STB_HIPROC = 15  // Higher bound for porcessor-specific semantics
+} st_bind;
+
+typedef enum e_st_type
+{
+  STT_NOTYPE = 0,  // Symbol type not specified
+  STT_OBJECT = 1,  // Symbol associated with a data object
+  STT_FUNC = 2,    // Symbol associated with a function
+  STT_SECTION = 3, // Symbol associated with a section
+  STT_FILE = 4,    // Gives the name of the source file associated
+  STT_COMMON = 5,  // Labels an uninitialized common block
+  STT_TLS = 6,     // Symbol specifies a Thread-Local-Storage entity
+  STT_LOOS = 10,   // Reserved for OS
+  STT_HIOS = 12,   // ""
+  STT_LOPROC = 13, // Reserved for processor
+  STT_HIPROC = 15  // ""
+} st_type;
 
 typedef struct s_symbol
 {
-  char* s_name;
-  // tipo
+  void *sym_ptr;
+  char *sym_name;
+  char  sym_type;
 } t_symbol;
 
 typedef struct s_bin
@@ -189,15 +177,16 @@ typedef struct s_bin
   int b_fd;
   size_t b_size;
 
-  ei_class  b_class;
+  ei_class b_class;
   ei_encode b_encoding;
-  uint32_t  b_version;
+  uint32_t b_version;
 
   uint64_t shoff;
   uint16_t shnum;
   uint16_t shentsize;
   uint16_t shstrndx;
 
+  void * strtab;
   t_list* b_elf_shdr;
   t_list* b_sym_lst;
 } t_bin;
@@ -211,10 +200,16 @@ typedef struct s_nm
 
 void arg_parser(t_nm*, char**);
 void parser_elf(t_bin*, t_nm*);
-void parser_elf_section(t_bin*, t_nm*);
+
+void parser_elf_hdr_x32(t_bin*, t_nm *);
+void parser_elf_hdr_x64(t_bin*, t_nm*);
+void parser_elf_section_x64(t_bin *, t_nm *);
 
 void log_error(error, char*);
 int clean_context(t_nm*);
 void log_and_exit(error, char*, t_nm*);
+
+//void print_section_values_x64(t_Elf64_Shdr*, int);
+//void print_symbol_table_x64(t_Elf64_Sym*, int);
 
 #endif //NM_H

@@ -4,14 +4,18 @@ SRC := nm.c \
        utils.c \
        arg_parser.c \
        elf_parser.c \
-       elf_section_parser.c
+       parse_x32/header_x32.c \
+       parse_x32/section_x32.c \
+       parse_x64/header_x64.c \
+       parse_x64/section_x64.c
+
 INCLUDE := nm.h
 
 SRC_DIR := src/
 INCLUDE_DIR := include/ \
                libft/includes/
 OBJ_DIR := obj/
-OBJ = ${SRC:%.c=${OBJ_DIR}%.o}
+OBJ     := ${patsubst ${SRC_DIR}%.c, ${OBJ_DIR}%.o, ${SRC}}
 
 LIBFT_DIR := libft/
 
@@ -54,6 +58,9 @@ clean:
 
 fclean: clean
 	${RM} ${NAME}
+
+test:
+	echo ${OBJ}
 
 re: fclean all
 

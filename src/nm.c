@@ -11,6 +11,9 @@ static error __file_validate_type(t_stat* stat)
   return NO_ERR;
 }
 
+/**
+ * Parseamos argumentos, iniciamos la lista con los archivos a enemear.
+ */
 int main(int argc, char* argv[])
 {
   t_nm    ctx;
@@ -43,11 +46,12 @@ int main(int argc, char* argv[])
       b_node = b_node->next;
       continue;
     }
+    bin->b_src = mmap(0, stat.st_size, PROT_READ, MAP_PRIVATE, bin->b_fd, 0);
     parser_elf(bin, &ctx);
+    munmap(bin->b_src, stat.st_size);
+    bin->b_src = NULL;
     b_node = b_node->next;
   }
   clean_context(&ctx);
   return (EXIT_SUCCESS);
 }
-
-// control de offset, control de tamanyo real, retorno de map
