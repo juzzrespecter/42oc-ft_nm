@@ -170,6 +170,18 @@ typedef struct s_symbol
   char  sym_type;
 } t_symbol;
 
+typedef struct s_elf_sym_wrapper
+{
+  void *shdr_ptr;
+  void *sym_ptr;
+} t_elf_sym_wrapper;
+
+typedef struct s_strtab
+{
+  size_t strtab_index;
+  char  *strtab;
+} t_strtab;
+
 typedef struct s_bin
 {
   char* b_path;
@@ -186,9 +198,9 @@ typedef struct s_bin
   uint16_t shentsize;
   uint16_t shstrndx;
 
-  void * strtab;
-  t_list* b_elf_shdr;
-  t_list* b_sym_lst;
+  t_list *b_elf_shdr; // TODO: nos quedamos solo con las cabeceras de simbolos
+  t_list *b_strtab_lst;
+  t_list *b_sym_lst;
 } t_bin;
 
 typedef struct s_nm
@@ -200,6 +212,8 @@ typedef struct s_nm
 
 void arg_parser(t_nm*, char**);
 void parser_elf(t_bin*, t_nm*);
+
+char *select_strtab(size_t, t_bin*);
 
 void parser_elf_hdr_x32(t_bin*, t_nm *);
 void parser_elf_hdr_x64(t_bin*, t_nm*);

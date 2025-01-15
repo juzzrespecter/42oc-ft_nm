@@ -1,10 +1,7 @@
 #ifndef _NM_X64_H
 # define _NM_X64_H
 
-# include <stdint.h>
-# ifndef EI_NIDENT
-#  define EI_NIDENT 16
-# endif
+# include "nm.h"
 
 // elf64 type definitions
 typedef uint16_t t_Elf64_Half;
@@ -60,8 +57,8 @@ typedef struct s_Elf64_Sym
 
 # define ELF64_ST_VISIBILITY(oth)    ((oth) & 0x3)
 
-void print_section_values_x64(t_Elf64_Shdr*, int);
-void print_symbol_table_x64(t_Elf64_Sym*, int);
+void print_section_values_x64(t_Elf64_Shdr*, t_bin*, int);
+void print_symbol_table_x64(t_elf_sym_wrapper*, t_bin*, int);
 
 # endif //_NM_X64_h
 

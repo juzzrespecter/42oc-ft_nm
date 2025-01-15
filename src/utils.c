@@ -82,31 +82,38 @@ void print_elf_header_x64(t_Elf64_Hdr *h)
 
 }
 
-void print_section_values_x64(t_Elf64_Shdr* s, int i)
+void print_section_values_x64(t_Elf64_Shdr* s, t_bin *b, int i)
 {
+  char *strtab = select_strtab(b->shstrndx, b);
+  char *sh_name;
+
+  if (strtab)
+    sh_name = &strtab[s->sh_name];
+  else
+    sh_name = "[ could not retrieve string table ]";
+
   printf("SECTION HEADER (%d)\n", i);
-  printf("\t· sh_name (Index name): %d\n", s->sh_name);
+  printf("\t· sh_name (Index name): %d (%s)\n", s->sh_name, sh_name);
   printf("\t· sh_type (Index type): ");
   switch (s->sh_type)
   {
-  case SHT_NULL: printf("SHT_NULL\n");         break;
-  case SHT_PROGBITS: printf("SHT_PROGBITS\n"); break;
-  case SHT_SYMTAB: printf("SHT_SYMTAB\n");     break;
-  case SHT_STRTAB: printf("SHT_STRTAB\n");     break;
-  case SHT_RELA: printf("SHT_RELA\n");         break;
-  case SHT_HASH: printf("SHT_HASH\n");         break;
-  case SHT_DYNAMIC: printf("SHT_DYNAMIC\n");   break;
-  case SHT_NOTE: printf("SHT_NOTE\n");         break;
-  case SHT_NOBITS: printf("SHT_NOBITS\n");     break;
-  case SHT_REL: printf("SHT_REL\n"); break;
-  case SHT_SHLIB: printf("SHT_SHLIB\n"); break;
-  case SHT_DYNSYM: printf("SHT_DYNSYM\n"); break;
-  case SHT_INIT_ARRAY: printf("SHT_INIT_ARRAY\n"); break;
-  case SHT_FINI_ARRAY: printf("SHT_FINI_ARRAY\n"); break;
+  case SHT_NULL: printf("SHT_NULL\n");                   break;
+  case SHT_PROGBITS: printf("SHT_PROGBITS\n");           break;
+  case SHT_SYMTAB: printf("SHT_SYMTAB\n");               break;
+  case SHT_STRTAB: printf("SHT_STRTAB\n");               break;
+  case SHT_RELA: printf("SHT_RELA\n");                   break;
+  case SHT_HASH: printf("SHT_HASH\n");                   break;
+  case SHT_DYNAMIC: printf("SHT_DYNAMIC\n");             break;
+  case SHT_NOTE: printf("SHT_NOTE\n");                   break;
+  case SHT_NOBITS: printf("SHT_NOBITS\n");               break;
+  case SHT_REL: printf("SHT_REL\n");                     break;
+  case SHT_SHLIB: printf("SHT_SHLIB\n");                 break;
+  case SHT_DYNSYM: printf("SHT_DYNSYM\n");               break;
+  case SHT_INIT_ARRAY: printf("SHT_INIT_ARRAY\n");       break;
+  case SHT_FINI_ARRAY: printf("SHT_FINI_ARRAY\n");       break;
   case SHT_PREINIT_ARRAY: printf("SHT_PREINIT_ARRAY\n"); break;
-  case SHT_GROUP: printf("SHT_GROUP\n"); break;
-  case SHT_SYMTAB_SHNDX: printf("SHT_SYMTAB_SHNDX\n");
-    break;
+  case SHT_GROUP: printf("SHT_GROUP\n");                 break;
+  case SHT_SYMTAB_SHNDX: printf("SHT_SYMTAB_SHNDX\n");   break;
   default:
     if (s->sh_type >= SHT_LOPROC && s->sh_type <= SHT_HIPROC)
       printf("[ Processor specific ]\n");
@@ -123,11 +130,11 @@ void print_section_values_x64(t_Elf64_Shdr* s, int i)
   if (s->sh_flags & SHF_LINK_ORDER)       printf("SHF_LINK_ORDER ");
   if (s->sh_flags & SHF_OS_NONCONFORMING) printf("SHF_OS_NONCONFORMING ");
   if (s->sh_flags & SHF_GROUP)            printf("SHF_GROUP ");
-  if (s->sh_flags & SHF_TLS)              printf("SHF_EXECINSTR ");
-  if (s->sh_flags & SHF_MASKOS)           printf("SHF_EXECINSTR ");
-  if (s->sh_flags & SHF_MASKPROC)         printf("SHF_EXECINSTR ");
+  if (s->sh_flags & SHF_TLS)              printf("SHF_TLS ");
+  if (s->sh_flags & SHF_MASKOS)           printf("SHF_MASKOS ");
+  if (s->sh_flags & SHF_MASKPROC)         printf("SHF_MASKPROC ");
   printf("\n");
-  printf("\t· sh_addr (section address): %p\n", (void*)s->sh_addr);
+  printf("\t· sh_addr (section  address): %p\n", (void*)s->sh_addr);
   printf("\t· sh_offset (section offset): %ld\n", s->sh_offset);
   printf("\t· sh_size (section size): %ld\n", s->sh_size);
   printf("\t· sh_link (section link): %d\n", s->sh_link);
@@ -136,10 +143,17 @@ void print_section_values_x64(t_Elf64_Shdr* s, int i)
   printf("\t· sh_entsize (section entry size): %ld\n\n\n", s->sh_entsize);
 }
 
-void print_symbol_table_x64(t_Elf64_Sym* s, int i)
+void print_symbol_table_x64(t_elf_sym_wrapper* n, t_bin* b, int i)
 {
-  char *st_type, *st_bind;
+  char *st_type, *st_bind, *st_name, *strtab;
+  t_Elf64_Sym  *s = (t_Elf64_Sym *)n->sym_ptr;
+  t_Elf64_Shdr *h = (t_Elf64_Shdr *)n->shdr_ptr;
 
+  strtab = select_strtab(h->sh_link, b);
+  if (strtab != NULL)
+    st_name = &strtab[s->st_name];
+  else
+    st_name = "[ unknown ]";
   switch (ELF64_ST_TYPE(s->st_info))
   {
     case (STT_NOTYPE): st_type = "STT_NOTYPE" ; break;
@@ -169,7 +183,7 @@ void print_symbol_table_x64(t_Elf64_Sym* s, int i)
   }
 
   printf("SYMBOL (%d)\n", i);
-  printf("\t· st_name (Index to symbol name): %d\n", s->st_name);
+  printf("\t· st_name (Index to symbol name): %d, (%s)\n", s->st_name, st_name);
   printf("\t· st_value (Symbol value): %p\n", (void *)s->st_value);
   printf("\t· st_size: %ld\n", s->st_size);
   printf("\t· bind: %s\n", st_bind);
