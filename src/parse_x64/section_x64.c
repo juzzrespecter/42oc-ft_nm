@@ -13,8 +13,8 @@ static char *special_sections[22] = {
 
 t_list *build_new_sym_node(t_Elf64_Sym *sym, t_Elf64_Shdr *shdr, t_nm *ctx)
 {
-  void              *sym_content = malloc(sizeof(t_Elf64_Sym));
-  t_elf_sym_wrapper *node_wrapper = malloc(sizeof(t_elf_sym_wrapper));
+  void              *sym_content = ft_calloc(1, sizeof(t_Elf64_Sym));
+  t_elf_sym_wrapper *node_wrapper = ft_calloc(1, sizeof(t_elf_sym_wrapper));
   t_list            *sym_node;
 
   if (sym_content == NULL || node_wrapper == NULL)
@@ -35,25 +35,25 @@ t_list *build_new_sym_node(t_Elf64_Sym *sym, t_Elf64_Shdr *shdr, t_nm *ctx)
   }
   return sym_node;
 }
-/*
+
 static void TEST_print_symbols(t_bin *b)
 {
   t_list *n = b->b_sym_lst;
 
-  while (n != NULL)
+  for (size_t i = 0; n != NULL; i++)
   {
-    print_symbol_table_x64((t_Elf64_Sym *)n->content, b, 0);
+    print_symbol_table_x64((t_elf_sym_wrapper *)n->content, b, i + 1);
     n = n->next;
   }
-}*/
+}
 
 static void TEST_print_sections(t_bin *b)
 {
   t_list *n = b->b_elf_shdr;
 
-  while (n != NULL)
+  for (int i = 0; n != NULL; i++)
   {
-    print_section_values_x64((t_Elf64_Shdr *)n->content, b, 1);
+    print_section_values_x64((t_Elf64_Shdr *)n->content, b, i + 1);
     n = n->next;
   }
 }
@@ -133,7 +133,7 @@ static void parse_strtab(t_Elf64_Shdr *shdr, size_t strtab_index, t_bin* bin, t_
   ft_lstadd_back(&bin->b_strtab_lst, strtab_node);
 }
 
-static void parse_symbol_table(t_Elf64_Shdr *shdr, t_bin* bin, t_nm *ctx)
+static void parse_symbol_table_x64(t_Elf64_Shdr *shdr, t_bin* bin, t_nm *ctx)
 {
   t_Elf64_Sym *sym;
   t_Elf64_Sym *sym_offset;
@@ -143,7 +143,7 @@ static void parse_symbol_table(t_Elf64_Shdr *shdr, t_bin* bin, t_nm *ctx)
   sym = (t_Elf64_Sym *)((char *)bin->b_src + shdr->sh_offset);
   for (size_t i = 0; i < n; i++)
   {
-    sym_offset = sym + (sizeof(t_Elf64_Sym) * i);
+    sym_offset = (t_Elf64_Sym *)((char *)sym + (sizeof(t_Elf64_Sym) + (i * shdr->sh_entsize)));
     printf("OFFSET: %ld, init: %ld\n", sym_offset - sym, shdr->sh_offset);
     sym_node = build_new_sym_node(sym_offset, shdr, ctx);
     ft_lstadd_back(&bin->b_sym_lst, sym_node);
@@ -173,10 +173,11 @@ void parser_elf_section_x64(t_bin *bin, t_nm *ctx) {
     if (shdr->sh_type == SHT_STRTAB)
       parse_strtab(shdr, i, bin, ctx);
     if (shdr->sh_type == SHT_SYMTAB || shdr->sh_type == SHT_DYNSYM)
-       parse_symbol_table(shdr, bin, ctx);
+       parse_symbol_table_x64(shdr, bin, ctx);
     i++;
   }
   TEST_print_sections(bin);
+  TEST_print_symbols(bin);
 }
 
 // como implementar la refwerencia a tabla desde simbolo ??
