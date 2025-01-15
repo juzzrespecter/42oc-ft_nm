@@ -143,7 +143,7 @@ static void parse_symbol_table_x64(t_Elf64_Shdr *shdr, t_bin* bin, t_nm *ctx)
   sym = (t_Elf64_Sym *)((char *)bin->b_src + shdr->sh_offset);
   for (size_t i = 0; i < n; i++)
   {
-    sym_offset = (t_Elf64_Sym *)((char *)sym + (sizeof(t_Elf64_Sym) + (i * shdr->sh_entsize)));
+    sym_offset = (t_Elf64_Sym *)((char *)sym + shdr->sh_entsize * i);
     printf("OFFSET: %ld, init: %ld\n", sym_offset - sym, shdr->sh_offset);
     sym_node = build_new_sym_node(sym_offset, shdr, ctx);
     ft_lstadd_back(&bin->b_sym_lst, sym_node);
