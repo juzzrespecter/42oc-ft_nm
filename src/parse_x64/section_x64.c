@@ -16,7 +16,7 @@ static t_list *build_new_sym_node(t_Elf64_Sym *sym, t_Elf64_Word sh_link, t_nm *
   t_Elf_Sym_wrapper *sym_wrapper = ft_calloc(1, sizeof(t_Elf_Sym_wrapper));
   t_list *sym_node;
 
-  if (sym_content == NULL)
+  if (sym_content == NULL || sym_wrapper == NULL)
   {
     free(sym_content);
     free(sym_wrapper);
@@ -155,10 +155,6 @@ static void parse_symbol_table_x64(t_Elf64_Shdr *shdr, t_bin* bin, t_nm *ctx)
     ft_lstadd_back(&bin->b_sym_lst, sym_node);
   }
 }
-
-
-
-
 
 void parser_elf_section_x64(t_bin *bin, t_nm *ctx) {
   void   *shdr_ptr;
