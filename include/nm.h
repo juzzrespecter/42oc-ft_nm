@@ -94,6 +94,26 @@ typedef enum e_e_type
   ET_HIPROC = 0xffff // Processor-specific
 } e_type;
 
+typedef enum e_sh_name
+{
+   SHN_UNDEF = 0,
+   SHN_LORESERVE = 0xff00,
+   SHN_LOPROC = 0xff00,
+   SHN_BEFORE = 0xff00,
+   SHN_AFTER = 0xff01,
+   SHN_AMD64_LCOMMON = 0xff02,
+   SHN_HIPROC = 0xff1f,
+   SHN_LOOS = 0xff20,
+   SHN_LOSUNW = 0xff3f,
+   SHN_SUNW_IGNORE = 0xff3f,
+   SHN_HISUNW = 0xff3f,
+   SHN_HIOS = 0xff3f,
+   SHN_ABS = 0xfff1,
+   SHN_COMMON = 0xfff2,
+   SHN_XINDEX = 0xffff,
+   SHN_HIRESERVE =0xffff
+} sh_name;
+
 /* https://refspecs.linuxbase.org/elf/gabi4+/ch4.sheader.html */
 
 typedef enum e_sh_type
@@ -170,11 +190,12 @@ typedef struct s_symbol
   char  sym_type;
 } t_symbol;
 
-typedef struct s_elf_sym_wrapper
+typedef struct s_Elf_Sym_wrapper
 {
-  void *shdr_ptr;
-  void *sym_ptr;
-} t_elf_sym_wrapper;
+  uint32_t sh_link;
+  void    *sym;
+
+} t_Elf_Sym_wrapper;
 
 typedef struct s_strtab
 {
@@ -198,9 +219,10 @@ typedef struct s_bin
   uint16_t shentsize;
   uint16_t shstrndx;
 
-  t_list *b_elf_shdr; // TODO: nos quedamos solo con las cabeceras de simbolos
+  t_list *b_elf_shdr;
   t_list *b_strtab_lst;
   t_list *b_sym_lst;
+  t_list *b_nm_sym_lst;
 } t_bin;
 
 typedef struct s_nm
@@ -216,14 +238,15 @@ void parser_elf(t_bin*, t_nm*);
 char *select_strtab(size_t, t_bin*);
 
 void parser_elf_hdr_x32(t_bin*, t_nm *);
+
 void parser_elf_hdr_x64(t_bin*, t_nm*);
 void parser_elf_section_x64(t_bin *, t_nm *);
+void parse_symbols_to_nm_fmt_x64(t_bin *, t_nm *);
+
+void output_nm_symbols(t_bin *);
 
 void log_error(error, char*);
 int clean_context(t_nm*);
 void log_and_exit(error, char*, t_nm*);
-
-//void print_section_values_x64(t_Elf64_Shdr*, int);
-//void print_symbol_table_x64(t_Elf64_Sym*, int);
 
 #endif //NM_H

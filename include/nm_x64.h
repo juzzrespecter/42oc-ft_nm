@@ -58,7 +58,9 @@ typedef struct s_Elf64_Sym
 # define ELF64_ST_VISIBILITY(oth)    ((oth) & 0x3)
 
 void print_section_values_x64(t_Elf64_Shdr*, t_bin*, int);
-void print_symbol_table_x64(t_elf_sym_wrapper*, t_bin*, int);
+void print_symbol_table_x64(t_Elf_Sym_wrapper*, t_bin*, int);
+
+t_Elf64_Shdr *find_section_header_x64(size_t , t_bin *);
 
 # endif //_NM_X64_h
 

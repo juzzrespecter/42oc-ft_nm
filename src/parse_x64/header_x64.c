@@ -17,6 +17,6 @@ void parser_elf_hdr_x64(t_bin *bin, t_nm *ctx) {
     bin->shentsize = ((t_Elf64_Hdr *)hdr_ptr)->e_shentsize;
     bin->shstrndx = ((t_Elf64_Hdr *)hdr_ptr)->e_shstrndx;
 
-  printf("SHSTRNDX: %d\n", bin->shstrndx); // TODO remove
-  parser_elf_section_x64(bin, ctx);
+    parser_elf_section_x64(bin, ctx);
+    parse_symbols_to_nm_fmt_x64(bin, ctx);
   }

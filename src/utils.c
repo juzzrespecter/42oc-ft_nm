@@ -143,13 +143,13 @@ void print_section_values_x64(t_Elf64_Shdr* s, t_bin *b, int i)
   printf("\t· sh_entsize (section entry size): %ld\n\n\n", s->sh_entsize);
 }
 
-void print_symbol_table_x64(t_elf_sym_wrapper* n, t_bin* b, int i)
+void print_symbol_table_x64(t_Elf_Sym_wrapper* n, t_bin* b, int i)
 {
-  char *st_type, *st_bind, *st_name, *strtab;
-  t_Elf64_Sym  *s = (t_Elf64_Sym *)n->sym_ptr;
-  t_Elf64_Shdr *h = (t_Elf64_Shdr *)n->shdr_ptr;
+  char *st_type, *st_bind, *st_name;
+  char *strtab = select_strtab(n->sh_link, b);
 
-  strtab = select_strtab(h->sh_link, b);
+  t_Elf64_Sym  *s = (t_Elf64_Sym *)n->sym;
+
   if (strtab != NULL)
     st_name = &strtab[s->st_name];
   else
@@ -179,7 +179,7 @@ void print_symbol_table_x64(t_elf_sym_wrapper* n, t_bin* b, int i)
     case (STB_HIOS): st_bind = "STB_HIOS"; break;
     case (STB_LOPROC): st_bind = "STB_LOPROC"; break;
     case (STB_HIPROC): st_bind = "STB_HIPROC"; break;
-    default: st_type = "UNKNOWN" ; break;
+    default: st_bind = "UNKNOWN" ; break;
   }
 
   printf("SYMBOL (%d)\n", i);

@@ -1,36 +1,35 @@
 #include "../../include/nm.h"
 #include "../../include/nm_x64.h"
 
-/*
-static char *special_sections[22] = {
-  ".bss", ".comment", ".data", ".data1",
-  ".debug", ".dynamic", ".dynstr", ".dynsym",
-  ".fini", ".got", ".hash", ".init",
-  ".interp", ".line", ".node", ".plt",
-  ".rodata", ".rodata1", ".shstrtab", ".strtab",
-  ".symtab", ".text"
-  };*/
-
-t_list *build_new_sym_node(t_Elf64_Sym *sym, t_Elf64_Shdr *shdr, t_nm *ctx)
+/**
+ * Generamos un nuevo nodo cuyo contenido es una cobertura que incluye un puntero
+ * a la memoria copiada del símbolo, el índice de la cabecera que apunta a la
+ * strtab que contiene el nombre del símbolo.
+ * @param sym ;; símbolo extraído del binario
+ * @param sh_link ;; índice de la tabla de cadenas de la sección de símbolos.
+ * @param ctx ;; contexto del programa.
+ * @return
+ */
+static t_list *build_new_sym_node(t_Elf64_Sym *sym, t_Elf64_Word sh_link, t_nm *ctx)
 {
   void              *sym_content = ft_calloc(1, sizeof(t_Elf64_Sym));
-  t_elf_sym_wrapper *node_wrapper = ft_calloc(1, sizeof(t_elf_sym_wrapper));
-  t_list            *sym_node;
+  t_Elf_Sym_wrapper *sym_wrapper = ft_calloc(1, sizeof(t_Elf_Sym_wrapper));
+  t_list *sym_node;
 
-  if (sym_content == NULL || node_wrapper == NULL)
+  if (sym_content == NULL)
   {
     free(sym_content);
-    free(node_wrapper);
+    free(sym_wrapper);
     log_and_exit(ERR_SYS, NULL, ctx);
   }
   ft_memcpy(sym_content, sym, sizeof(t_Elf64_Sym));
-  node_wrapper->sym_ptr = sym_content;
-  node_wrapper->shdr_ptr = shdr;
-  sym_node = ft_lstnew(node_wrapper);
+  sym_wrapper->sh_link = sh_link;
+  sym_wrapper->sym = sym;
+  sym_node = ft_lstnew(sym_content);
   if (sym_node == NULL)
   {
     free(sym_content);
-    free(node_wrapper);
+    free(sym_wrapper);
     log_and_exit(ERR_SYS, NULL, ctx);
   }
   return sym_node;
@@ -42,7 +41,7 @@ static void TEST_print_symbols(t_bin *b)
 
   for (size_t i = 0; n != NULL; i++)
   {
-    print_symbol_table_x64((t_elf_sym_wrapper *)n->content, b, i + 1);
+    print_symbol_table_x64((t_Elf_Sym_wrapper *)n->content, b, i + 1);
     n = n->next;
   }
 }
@@ -86,6 +85,22 @@ char *select_strtab(size_t index, t_bin *bin)
   return selected_strtab;
 } // esto debe ir a common
 
+t_Elf64_Shdr *find_section_header_x64(size_t idx, t_bin *bin)
+{
+  t_list *node = bin->b_elf_shdr;
+  t_Elf64_Shdr *selected_shdr = NULL;
+
+  for (size_t i = 0; node != NULL; i++)
+  {
+    if (i == idx)
+    {
+      selected_shdr = (t_Elf64_Shdr *)node->content;
+      break ;
+    }
+  }
+  return selected_shdr;
+}
+
 static t_list *build_new_shdr_node(t_Elf64_Shdr *shdr, t_nm *ctx)
 {
   void   *shdr_content = malloc(sizeof(t_Elf64_Shdr));
@@ -103,14 +118,6 @@ static t_list *build_new_shdr_node(t_Elf64_Shdr *shdr, t_nm *ctx)
   return shdr_node;
 }
 
-// importante definir logica de string tables; de momento tenemos tres distintas,
-// la de simbolos, la de secciones (referenciada en la cabecera ELF), y la de simbolos dimanicos
-// Compilando codigo c++ se reducen al menos las dos primeras a una sola, investigar esto
-
-// .shstrtab, .strtab, dyntab
-// .sh_link -> en cabecera de simbolos, apunta a la strtab que contiene los nombres
-// por tanto, debemos guardar este valor, o al menos las cabeceras de simbolos
-// (la lista de simbolos deberian de accederse desde las cabeceras de simbolos ?? )
 static void parse_strtab(t_Elf64_Shdr *shdr, size_t strtab_index, t_bin* bin, t_nm *ctx)
 {
   void     *shdr_strtab = bin->b_src + shdr->sh_offset;
@@ -144,13 +151,15 @@ static void parse_symbol_table_x64(t_Elf64_Shdr *shdr, t_bin* bin, t_nm *ctx)
   for (size_t i = 0; i < n; i++)
   {
     sym_offset = (t_Elf64_Sym *)((char *)sym + (sizeof(t_Elf64_Sym) + (i * shdr->sh_entsize)));
-    printf("OFFSET: %ld, init: %ld\n", sym_offset - sym, shdr->sh_offset);
-    sym_node = build_new_sym_node(sym_offset, shdr, ctx);
+    sym_node = build_new_sym_node(sym_offset, shdr->sh_link, ctx);
     ft_lstadd_back(&bin->b_sym_lst, sym_node);
   }
 }
 
-/* Las secciones que contienen listas de símbolos son SHT_SYMTAB y SHT_DYNSYM */
+
+
+
+
 void parser_elf_section_x64(t_bin *bin, t_nm *ctx) {
   void   *shdr_ptr;
   t_list *shdr_node;
@@ -176,11 +185,6 @@ void parser_elf_section_x64(t_bin *bin, t_nm *ctx) {
        parse_symbol_table_x64(shdr, bin, ctx);
     i++;
   }
-  TEST_print_sections(bin);
-  TEST_print_symbols(bin);
+  TEST_print_sections(bin); // proteger para debug
+  TEST_print_symbols(bin); // proteger para debug
 }
-
-// como implementar la refwerencia a tabla desde simbolo ??
-// * cada cabecera de simbolos contiene la propia lista, la obtencion de informacion se hace de cabecera en cabereca
-// * referencia superficial dentro de cada simbolo, desacopla la lista de simbolos de la de cabeceras -> THIS
-// * sin lista de cabeceras, guardamos info en el nodo del simbolo
