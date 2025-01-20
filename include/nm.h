@@ -94,25 +94,6 @@ typedef enum e_e_type
   ET_HIPROC = 0xffff // Processor-specific
 } e_type;
 
-typedef enum e_sh_name
-{
-   SHN_UNDEF = 0,
-   SHN_LORESERVE = 0xff00,
-   SHN_LOPROC = 0xff00,
-   SHN_BEFORE = 0xff00,
-   SHN_AFTER = 0xff01,
-   SHN_AMD64_LCOMMON = 0xff02,
-   SHN_HIPROC = 0xff1f,
-   SHN_LOOS = 0xff20,
-   SHN_LOSUNW = 0xff3f,
-   SHN_SUNW_IGNORE = 0xff3f,
-   SHN_HISUNW = 0xff3f,
-   SHN_HIOS = 0xff3f,
-   SHN_ABS = 0xfff1,
-   SHN_COMMON = 0xfff2,
-   SHN_XINDEX = 0xffff,
-   SHN_HIRESERVE =0xffff
-} sh_name;
 
 /* https://refspecs.linuxbase.org/elf/gabi4+/ch4.sheader.html */
 
@@ -182,6 +163,27 @@ typedef enum e_st_type
   STT_LOPROC = 13, // Reserved for processor
   STT_HIPROC = 15  // ""
 } st_type;
+
+// Special section indexes
+typedef enum e_st_shndx
+{
+  SHN_UNDEF = 0,
+  SHN_LORESERVE = 0xff00,
+  SHN_LOPROC = 0xff00,
+  SHN_BEFORE = 0xff00,
+  SHN_AFTER = 0xff01,
+  SHN_AMD64_LCOMMON = 0xff02,
+  SHN_HIPROC = 0xff1f,
+  SHN_LOOS = 0xff20,
+  SHN_LOSUNW = 0xff3f,
+  SHN_SUNW_IGNORE = 0xff3f,
+  SHN_HISUNW = 0xff3f,
+  SHN_HIOS = 0xff3f,
+  SHN_ABS = 0xfff1,
+  SHN_COMMON = 0xfff2,
+  SHN_XINDEX = 0xffff,
+  SHN_HIRESERVE =0xffff
+} st_shndx;
 
 typedef struct s_symbol
 {

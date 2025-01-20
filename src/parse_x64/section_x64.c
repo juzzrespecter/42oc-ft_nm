@@ -25,7 +25,7 @@ static t_list *build_new_sym_node(t_Elf64_Sym *sym, t_Elf64_Word sh_link, t_nm *
   ft_memcpy(sym_content, sym, sizeof(t_Elf64_Sym));
   sym_wrapper->sh_link = sh_link;
   sym_wrapper->sym = sym;
-  sym_node = ft_lstnew(sym_content);
+  sym_node = ft_lstnew(sym_wrapper);
   if (sym_node == NULL)
   {
     free(sym_content);
@@ -41,7 +41,7 @@ static void TEST_print_symbols(t_bin *b)
 
   for (size_t i = 0; n != NULL; i++)
   {
-    print_symbol_table_x64((t_Elf_Sym_wrapper *)n->content, b, i + 1);
+    print_symbol_table_x64((t_Elf_Sym_wrapper *)n->content, b, i);
     n = n->next;
   }
 }
@@ -52,7 +52,7 @@ static void TEST_print_sections(t_bin *b)
 
   for (int i = 0; n != NULL; i++)
   {
-    print_section_values_x64((t_Elf64_Shdr *)n->content, b, i + 1);
+    print_section_values_x64((t_Elf64_Shdr *)n->content, b, i);
     n = n->next;
   }
 }
@@ -85,14 +85,16 @@ char *select_strtab(size_t index, t_bin *bin)
   return selected_strtab;
 } // esto debe ir a common
 
-t_Elf64_Shdr *find_section_header_x64(size_t idx, t_bin *bin)
+t_Elf64_Shdr *find_section_header_x64(size_t shndx, t_bin *bin)
 {
   t_list *node = bin->b_elf_shdr;
   t_Elf64_Shdr *selected_shdr = NULL;
 
+  if (shndx == SHN_UNDEF || shndx >= SHN_LORESERVE)
+    return NULL;
   for (size_t i = 0; node != NULL; i++)
   {
-    if (i == idx)
+    if (i == shndx)
     {
       selected_shdr = (t_Elf64_Shdr *)node->content;
       break ;
@@ -150,7 +152,7 @@ static void parse_symbol_table_x64(t_Elf64_Shdr *shdr, t_bin* bin, t_nm *ctx)
   sym = (t_Elf64_Sym *)((char *)bin->b_src + shdr->sh_offset);
   for (size_t i = 0; i < n; i++)
   {
-    sym_offset = (t_Elf64_Sym *)((char *)sym + (sizeof(t_Elf64_Sym) + (i * shdr->sh_entsize)));
+    sym_offset = (t_Elf64_Sym *)((char *)sym + shdr->sh_entsize * i);
     sym_node = build_new_sym_node(sym_offset, shdr->sh_link, ctx);
     ft_lstadd_back(&bin->b_sym_lst, sym_node);
   }

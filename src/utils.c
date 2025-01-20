@@ -145,15 +145,16 @@ void print_section_values_x64(t_Elf64_Shdr* s, t_bin *b, int i)
 
 void print_symbol_table_x64(t_Elf_Sym_wrapper* n, t_bin* b, int i)
 {
-  char *st_type, *st_bind, *st_name;
-  char *strtab = select_strtab(n->sh_link, b);
-
   t_Elf64_Sym  *s = (t_Elf64_Sym *)n->sym;
+  t_Elf64_Shdr *shdr = find_section_header_x64(s->st_shndx, b);
 
-  if (strtab != NULL)
-    st_name = &strtab[s->st_name];
-  else
-    st_name = "[ unknown ]";
+  char *st_type, *st_bind, *st_name, *sh_name;
+  char *strtab = select_strtab(n->sh_link, b);
+  char *shstrtab = (shdr) ? select_strtab(shdr->sh_name, b) : NULL;
+
+  st_name = (strtab != NULL) ? &strtab[s->st_name] : "[ unknown ]";
+  sh_name = (shstrtab != NULL) ? &shstrtab[shdr->sh_name] : "[ unlisted ]";
+
   switch (ELF64_ST_TYPE(s->st_info))
   {
     case (STT_NOTYPE): st_type = "STT_NOTYPE" ; break;
@@ -167,7 +168,7 @@ void print_symbol_table_x64(t_Elf_Sym_wrapper* n, t_bin* b, int i)
     case (STT_HIOS): st_type = "STT_HIOS" ; break;
     case (STT_LOPROC): st_type = "STT_LOPROC" ; break;
     case (STT_HIPROC): st_type = "STT_HIPROC" ; break;
-    default: st_type = "UNKNOWN" ; break;
+    default: st_type = "[ unknown ]" ; break;
   }
 
   switch (ELF64_ST_BIND(s->st_info))
@@ -179,13 +180,14 @@ void print_symbol_table_x64(t_Elf_Sym_wrapper* n, t_bin* b, int i)
     case (STB_HIOS): st_bind = "STB_HIOS"; break;
     case (STB_LOPROC): st_bind = "STB_LOPROC"; break;
     case (STB_HIPROC): st_bind = "STB_HIPROC"; break;
-    default: st_bind = "UNKNOWN" ; break;
+    default: st_bind = "[ unknown ]" ; break;
   }
 
   printf("SYMBOL (%d)\n", i);
-  printf("\t· st_name (Index to symbol name): %d, (%s)\n", s->st_name, st_name);
+  printf("\t· st_name: %d -> %s\n", s->st_name, st_name);
   printf("\t· st_value (Symbol value): %p\n", (void *)s->st_value);
   printf("\t· st_size: %ld\n", s->st_size);
-  printf("\t· bind: %s\n", st_bind);
-  printf("\t· type: %s\n", st_type);
+  printf("\t· st_info: %d (%s, %s)\n", s->st_info, st_type, st_bind);
+  printf("\t· st_shndx: %d -> %s\n", s->st_shndx, sh_name);
+  printf("\t· st_other: %d\n", s->st_other);
 }
