@@ -1,11 +1,14 @@
 # include "../../include/nm.h"
 # include "../../include/nm_x64.h"
 
+static const char *special_sections[6] = {".data", ".bss", ".rodata", ".text", ".sdata", ".sbss"};
+
 static t_symbol *build_new_nm_symbol(t_Elf_Sym_wrapper *wr_sym, t_bin *bin, t_nm *ctx)
 {
 
     char *shstrtab = select_strtab(bin->shstrndx, bin);
     char *strtab = select_strtab(wr_sym->sh_link, bin);
+    char *sh_name;
 
     t_Elf64_Sym  *sym = wr_sym->sym;
     t_Elf64_Shdr *shdr = find_section_header_x64(sym->st_shndx, bin);
@@ -25,38 +28,54 @@ static t_symbol *build_new_nm_symbol(t_Elf_Sym_wrapper *wr_sym, t_bin *bin, t_nm
     ft_nm_sym->sym_ptr = (void *)sym->st_value;
     ft_nm_sym->sym_name = &strtab[sym->st_name];
 
+    if (sym->st_shndx > SHN_UNDEF && sym->st_shndx < SHN_LORESERVE && shstrtab)
+    {
+        sh_name = &shstrtab[shdr->sh_name];
+
+        for (int i = 0; i < 6; i++)
+        {
+            if (!ft_strncmp(sh_name, special_sections[i], ft_strlen(special_sections[i]) + 1))
+            {
+                char chosen_type = "dbntgs"[i];
+
+                ft_nm_sym->sym_type = chosen_type - 32 * (STB_LOCAL != bind_value);
+                goto save_symbol;
+            }
+        }
+    }
+
     // A: valor de simbolo absoluto, no sera cambiado en linkeo
-    if (shdr->sh_name == SHN_ABS) // no me fio de esto
-    {
+    if (sym->st_shndx == SHN_ABS) // no me fio de esto
+        ft_nm_sym->sym_type = 'a' - 32 * (STB_LOCAL != bind_value);
 
-    }
-    // B/b: simbolo en .bss data section
-    if (!ft_strncmp(&shstrtab[shdr->sh_name], ".bss", 4))
-    {
-        // como comprobamos que el simbolo esta en .bss ?? (.bss no es una cabecera de simbolos)
-    }
     //  C/c: el simbolo es comun
-
-    // D/d: el simbolo esta en la seccion iniializada de data
-
-
-    if (!ft_strncmp(&shstrtab[shdr->sh_name], ".data", 6) && (bind_value == STB_GLOBAL || bind_value == STB_LOCAL))
-    {
-        ft_nm_sym->sym_type = (bind_value == STB_GLOBAL) ? 'D' : 'd';
-    }
-
-    // G/g: en la seccion inicializada de data en seccion esmalla objecto
+    if (sym->st_shndx == SHN_COMMON)
+        ft_nm_sym->sym_type = 'c' - 32 * (STB_LOCAL != bind_value);
 
     // simbolo es una funcion indirecta: DOCUMENTAR FUNCION INDIRECTA, (i)
     // si ha sido referenciada por una relocacion, no evalua su direccion de memeoria, sino que se
     // invoca en runtime (--ifunc-chars)
 
+    // i (chiquita)
+
     // I: simbolo es funcion indirecta de otro
 
     // N: simbolo es un debugo simbolo: DOCUMENTAR DEBUGO SIMBOLO
 
-    // ...
+    // p: simbolo en seccion de stack unwind
 
+    // R/r: simbolo en una seccion de solo lectura (etendemos cualquier seccion read only excepto rodata)
+
+    // S/s: simbolo en seccion de zeroinicializadas o sin inicializar data section para objetos esmalos
+
+    // U: simboo sin definir (externo)
+
+    // u: Unique global symbol.
+
+    // V/v: simbolo es un objeto guaco.
+
+    // ...
+save_symbol:
     return ft_nm_sym;
 }
 
@@ -73,4 +92,5 @@ void parse_symbols_to_nm_fmt_x64(t_bin *bin, t_nm *ctx)
        ft_lstadd_back(&bin->b_nm_sym_lst, nm_sym_node);
        node = node->next;
    }
+    output_nm_symbols(bin);
   }

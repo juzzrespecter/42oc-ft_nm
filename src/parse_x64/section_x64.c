@@ -99,6 +99,7 @@ t_Elf64_Shdr *find_section_header_x64(size_t shndx, t_bin *bin)
       selected_shdr = (t_Elf64_Shdr *)node->content;
       break ;
     }
+    node = node->next;
   }
   return selected_shdr;
 }
@@ -135,6 +136,7 @@ static void parse_strtab(t_Elf64_Shdr *shdr, size_t strtab_index, t_bin* bin, t_
     free(strtab_node);
     log_and_exit(ERR_SYS, NULL, ctx);
   }
+  printf("Gardando strtabs: indice -> %ld\n", strtab_index);
   ft_memcpy(strtab->strtab, shdr_strtab, shdr->sh_size);
   strtab->strtab_index = strtab_index;
   strtab_node->content = (void *)strtab;
