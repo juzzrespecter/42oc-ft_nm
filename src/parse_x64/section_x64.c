@@ -136,7 +136,6 @@ static void parse_strtab(t_Elf64_Shdr *shdr, size_t strtab_index, t_bin* bin, t_
     free(strtab_node);
     log_and_exit(ERR_SYS, NULL, ctx);
   }
-  printf("Gardando strtabs: indice -> %ld\n", strtab_index);
   ft_memcpy(strtab->strtab, shdr_strtab, shdr->sh_size);
   strtab->strtab_index = strtab_index;
   strtab_node->content = (void *)strtab;
@@ -152,7 +151,7 @@ static void parse_symbol_table_x64(t_Elf64_Shdr *shdr, t_bin* bin, t_nm *ctx)
   size_t       n = shdr->sh_size / shdr->sh_entsize;
 
   sym = (t_Elf64_Sym *)((char *)bin->b_src + shdr->sh_offset);
-  for (size_t i = 0; i < n; i++)
+  for (size_t i = 1; i < n; i++)
   {
     sym_offset = (t_Elf64_Sym *)((char *)sym + shdr->sh_entsize * i);
     sym_node = build_new_sym_node(sym_offset, shdr->sh_link, ctx);
