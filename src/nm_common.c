@@ -83,20 +83,15 @@ t_list *build_new_shdr_node(void* shdr, ei_class class, t_nm* ctx)
   return shdr_node;
   }
 
-  static int rev_symbol_cmp(unsigned long a, unsigned long b)
+static int ft_strcnmp_rev(const char* a, const char* b, size_t len)
 {
-    return b - a;
-}
-
-static int symbol_cmp(unsigned long a, unsigned long b)
-{
-  return a - b;
+    return -1 * ft_strncmp(a, b, len);
 }
 
 /**
 * Usamos un bubble sort de mierda para ordenar la lista en base a criterio por argumento.
 */
-static void sort_symbols_alpha(t_list** alst, int (*cmp)(unsigned long, unsigned long))
+static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char*, size_t))
 {
   size_t  len = ft_lstsize(*alst);
   t_list *node, *prev, *next;
@@ -112,7 +107,7 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(unsigned long, unsigned
         break ;
       t_symbol *sym = node->content;
       t_symbol *sym_next = next->content;
-      if (cmp((unsigned long)sym->sym_ptr, (unsigned long)sym_next->sym_ptr) < 0)
+      if (cmp(sym->sym_name, sym_next->sym_name, ft_strlen(sym->sym_name) + 1) < 0)
       {
         if (node == *alst)
         {
@@ -148,9 +143,9 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
     t_list *node;
 
     if (!(ctx->flags & NO_SORT_F) && ctx->flags & REV_SORT_F)
-      sort_symbols_alpha(&bin->b_nm_sym_lst, rev_symbol_cmp);
+      sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strncmp);
     if (!(ctx->flags & NO_SORT_F) && !(ctx->flags & REV_SORT_F))
-      sort_symbols_alpha(&bin->b_nm_sym_lst, symbol_cmp);
+      sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strcnmp_rev);
     node = bin->b_nm_sym_lst;
 
     write(STDOUT_FILENO, bin->b_src, ft_strlen(bin->b_src)); // esto solo printa cuando hay mas de uno
@@ -170,7 +165,7 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
             if (bin->b_class == ELFCLASS32)
               printf("%08lx", (unsigned long)nm_sym->sym_ptr); // to write
             if (bin->b_class == ELFCLASS64)
-              printf("%016ld", (unsigned long)nm_sym->sym_ptr); // to write
+              printf("%016lx", (unsigned long)nm_sym->sym_ptr); // to write
         }
         printf(" %c %s\n",nm_sym->sym_type, nm_sym->sym_name); //to write
         //node = node->next;

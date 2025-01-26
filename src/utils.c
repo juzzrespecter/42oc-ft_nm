@@ -179,8 +179,6 @@ void print_symbol_table_x64(t_Elf_Sym_wrapper* n, t_bin* b, int i)
   st_name = (strtab != NULL) ? &strtab[s->st_name] : "[ unknown ]";
   sh_name = (shstrtab != NULL) ? &shstrtab[shdr->sh_name] : "[ unlisted ]";
 
-  if (shdr != NULL)
-      printf("sh_name: shndx - %d, sh_name - %d, (%s)\n", s->st_shndx, shdr->sh_name, sh_name);
   switch (ELF64_ST_TYPE(s->st_info))
   {
     case (STT_NOTYPE): st_type = "STT_NOTYPE" ; break;

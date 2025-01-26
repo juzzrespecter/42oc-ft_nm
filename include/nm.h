@@ -141,7 +141,7 @@ typedef enum e_sh_flags
 
 typedef enum e_st_bind
 {
-  STB_LOCAL = 0, // Symbol is local (not visible outisde object)
+  STB_LOCAL = 0, // Symbol is local (not visible outside object)
   STB_GLOBAL = 1, // Symbol is global (satisfies all file's reference)
   STB_WEAK = 2, // Symbol is weak (lower precedence than local)
   STB_LOOS = 10, // Lower bound for OS-specific semantics

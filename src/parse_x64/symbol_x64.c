@@ -54,6 +54,8 @@ static t_symbol *build_new_nm_symbol(t_Elf_Sym_wrapper *wr_sym, t_bin *bin, t_nm
     if (sym->st_shndx == SHN_COMMON)
         ft_nm_sym->sym_type = 'c' - 32 * (STB_LOCAL != bind_value);
 
+    if (type_value == STT_OBJECT)
+      ft_nm_sym->sym_type = 'd' - 32 * (STB_LOCAL != bind_value);
     // simbolo es una funcion indirecta: DOCUMENTAR FUNCION INDIRECTA, (i)
     // si ha sido referenciada por una relocacion, no evalua su direccion de memeoria, sino que se
     // invoca en runtime (--ifunc-chars)
@@ -79,6 +81,8 @@ static t_symbol *build_new_nm_symbol(t_Elf_Sym_wrapper *wr_sym, t_bin *bin, t_nm
     // V/v: simbolo es un objeto guaco.
 
     // ...
+    if (bind_value == STB_WEAK)
+      ft_nm_sym->sym_type = 'w' - 32 * (STB_LOCAL != bind_value);
 
     // necesito la diferencia entre STT_NOTYPE (no tiene valor) y los simbolos con valor 0
 save_symbol:
