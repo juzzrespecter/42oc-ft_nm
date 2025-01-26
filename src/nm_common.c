@@ -54,7 +54,7 @@ t_list *build_new_sym_node(void *sym, ei_class b_class, uint32_t sh_link, t_nm *
     }
     ft_memcpy(sym_content, sym, sym_size);
     sym_wrapper->sh_link = sh_link;
-    sym_wrapper->sym = sym;
+    sym_wrapper->sym = sym_content;
     sym_node = ft_lstnew(sym_wrapper);
     if (sym_node == NULL)
     {
@@ -67,7 +67,6 @@ t_list *build_new_sym_node(void *sym, ei_class b_class, uint32_t sh_link, t_nm *
 
 t_list *build_new_shdr_node(void* shdr, ei_class class, t_nm* ctx)
     {
-  printf("TEST: (%ld,%ld)\n", sizeof(t_Elf32_Shdr), sizeof(t_Elf64_Shdr));
   size_t  shdr_size = (class == ELFCLASS64) ? sizeof(t_Elf64_Shdr) : sizeof(t_Elf32_Shdr);
   void   *shdr_content = malloc(shdr_size);
   t_list *shdr_node;
@@ -99,14 +98,13 @@ static int symbol_cmp(unsigned long a, unsigned long b)
 */
 static void sort_symbols_alpha(t_list** alst, int (*cmp)(unsigned long, unsigned long))
 {
-  size_t len = ft_lstsize(*alst);
-  t_list *head = *alst;
+  size_t  len = ft_lstsize(*alst);
   t_list *node, *prev, *next;
 
   for (size_t i = 0; i < len; i++)
     {
-    node = head;
-    prev = head;
+    node = *alst;
+    prev = *alst;
     while (node != NULL)
     {
       next = node->next;
@@ -116,11 +114,11 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(unsigned long, unsigned
       t_symbol *sym_next = next->content;
       if (cmp((unsigned long)sym->sym_ptr, (unsigned long)sym_next->sym_ptr) < 0)
       {
-        if (node == head)
+        if (node == *alst)
         {
             *alst = next;
-            node->next = next->next;
-            next->next = node;
+            node->next = (*alst)->next;
+            (*alst)->next = node;
         }
         else
         {
@@ -147,16 +145,17 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(unsigned long, unsigned
 
 void output_nm_symbols(t_bin* bin, t_nm* ctx)
 {
-    t_list *node = bin->b_nm_sym_lst;
+    t_list *node;
 
     if (!(ctx->flags & NO_SORT_F) && ctx->flags & REV_SORT_F)
       sort_symbols_alpha(&bin->b_nm_sym_lst, rev_symbol_cmp);
     if (!(ctx->flags & NO_SORT_F) && !(ctx->flags & REV_SORT_F))
       sort_symbols_alpha(&bin->b_nm_sym_lst, symbol_cmp);
+    node = bin->b_nm_sym_lst;
 
     write(STDOUT_FILENO, bin->b_src, ft_strlen(bin->b_src)); // esto solo printa cuando hay mas de uno
     write(STDOUT_FILENO, "\n", 1);
-    for (size_t i = 0; node != NULL; i++, node=node->next) // probar esto, la i pa que
+    for (; node != NULL; node=node->next) // probar esto, la i pa que
     {
         t_symbol *nm_sym = (t_symbol *)node->content;
 
@@ -174,6 +173,6 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
               printf("%016ld", (unsigned long)nm_sym->sym_ptr); // to write
         }
         printf(" %c %s\n",nm_sym->sym_type, nm_sym->sym_name); //to write
-        node = node->next;
+        //node = node->next;
     }
 }

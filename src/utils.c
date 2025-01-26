@@ -9,13 +9,22 @@ static const char* reason[] = {
   "file format not recognized"
 };
 
-void free_strtab(void *ptr)
+static void del_strtab(void *ptr)
 {
   t_strtab* tab = (t_strtab*)ptr;
 
   if (tab)
     free(tab->strtab);
   free(tab);
+}
+
+static void del_symlist(void *ptr)
+{
+  t_Elf_Sym_wrapper* sym_wrapper = (t_Elf_Sym_wrapper*)ptr;
+
+  if (sym_wrapper)
+    free(sym_wrapper->sym);
+  free(ptr);
 }
 
 static void del_binlst(void* bin)
@@ -27,9 +36,9 @@ static void del_binlst(void* bin)
   if (b->b_elf_shdr)
     ft_lstclear(&b->b_elf_shdr, free);
   if (b->b_sym_lst)
-    ft_lstclear(&b->b_sym_lst, free);
+    ft_lstclear(&b->b_sym_lst, del_symlist);
   if (b->b_strtab_lst)
-    ft_lstclear(&b->b_strtab_lst, free_strtab);
+    ft_lstclear(&b->b_strtab_lst, del_strtab);
   if (b->b_nm_sym_lst)
     ft_lstclear(&b->b_nm_sym_lst, free);
   if (b->b_src)
