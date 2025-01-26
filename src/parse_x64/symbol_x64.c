@@ -98,5 +98,5 @@ void parse_symbols_to_nm_fmt_x64(t_bin *bin, t_nm *ctx)
        ft_lstadd_back(&bin->b_nm_sym_lst, nm_sym_node);
        node = node->next;
    }
-    output_nm_symbols(bin);
+    output_nm_symbols(bin, ctx);
   }

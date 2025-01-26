@@ -240,14 +240,15 @@ void parser_elf(t_bin*, t_nm*);
 char* select_strtab(size_t, t_bin*);
 
 void parser_elf_hdr_x32(t_bin*, t_nm*);
-void parser_elf_section_x32(t_bin*, t_nm*);
 void parse_symbols_to_nm_fmt_x32(t_bin*, t_nm*);
 
 void parser_elf_hdr_x64(t_bin*, t_nm*);
-void parser_elf_section_x64(t_bin*, t_nm*);
 void parse_symbols_to_nm_fmt_x64(t_bin*, t_nm*);
 
-void output_nm_symbols(t_bin*);
+t_list* build_new_shdr_node(void*, ei_class, t_nm*);
+t_list *build_new_sym_node(void *, ei_class, uint32_t , t_nm *);
+
+void output_nm_symbols(t_bin*, t_nm*);
 
 void log_error(error, char*);
 int clean_context(t_nm*);

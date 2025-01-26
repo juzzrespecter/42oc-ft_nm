@@ -5,9 +5,8 @@ SRC := nm.c \
        utils.c \
        arg_parser.c \
        elf_parser.c \
-       parse_x32/header_x32.c \
        parse_x32/section_x32.c \
-       parse_x64/header_x64.c \
+       parse_x32/symbol_x32.c \
        parse_x64/section_x64.c \
        parse_x64/symbol_x64.c
 
