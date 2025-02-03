@@ -5,10 +5,11 @@ SRC := nm.c \
        utils.c \
        arg_parser.c \
        elf_parser.c \
-       parse_x32/section_x32.c \
-       parse_x32/symbol_x32.c \
-       parse_x64/section_x64.c \
-       parse_x64/symbol_x64.c
+       symbol.c \
+       section_x32.c \
+       symbol_x32.c \
+       section_x64.c \
+       symbol_x64.c
 
 INCLUDE := nm.h
 
@@ -16,7 +17,7 @@ SRC_DIR := src/
 INCLUDE_DIR := include/ \
                libft/includes/
 OBJ_DIR := obj/
-OBJ     := ${patsubst ${SRC_DIR}%.c, ${OBJ_DIR}%.o, ${SRC}}
+OBJ     := ${patsubst %.c, ${OBJ_DIR}%.o, ${SRC}}
 
 LIBFT_DIR := libft/
 
@@ -26,9 +27,6 @@ vpath %.h include/
 # ~ Compilation variables ~
 CC := gcc
 CFLAGS = -Wall -Werror -Wextra
-ifdef DEBUG
-    CFLAGS += -fsanitize=address -g3
-endif
 IFLAGS := $(addprefix -I, ${INCLUDE_DIR})
 LFLAGS := -lft -L${LIBFT_DIR}
 
@@ -43,10 +41,10 @@ NAME := ft_nm
 all: ${NAME}
 
 ${NAME}: ${OBJ} ${LIBFT}
-	${CC} ${CFLAGS} $^ -o $@ ${IFLAGS} ${LFLAGS}
+	${CC} ${CFLAGS} $^ -o $@ ${IFLAGS} ${LFLAGS} ${_NM_DEBUG}
 
 ${OBJ_DIR}%.o:  ${SRC_DIR}%.c | ${OBJ_DIR}
-	${CC} ${CFLAGS} -c $< -o $@ ${IFLAGS}
+	${CC} ${CFLAGS} -c ${SRC_DIR}${notdir $<} -o $@ ${IFLAGS} ${_NM_DEBUG}
 
 ${OBJ_DIR}:
 	mkdir -v ${OBJ_DIR}
@@ -55,13 +53,16 @@ ${LIBFT}:
 	make -C ${LIBFT_DIR}
 
 clean:
-	${RM} ${OBJ}
+	${RM} ${OBJ_DIR}
 
 fclean: clean
 	${RM} ${NAME}
 
-test:
+testo:
 	echo ${OBJ}
+
+debug: fclean
+	${MAKE} all CFLAGS="${CFLAGS} -g3 -fsanitize=address" _NM_DEBUG="-D _NM_DEBUG=1"
 
 re: fclean all
 

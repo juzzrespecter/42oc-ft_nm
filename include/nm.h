@@ -68,6 +68,8 @@ typedef enum e_ei_encode
 
 # define ELF64_ST_VISIBILITY(oth)    ((oth) & 0x3)
 
+# define IS_GLOBAL_SYM(c, type) (type == STB_GLOBAL) ? c - 32 : c
+
 /* https://refspecs.linuxfoundation.org/elf/gabi4+/ch4.intro.html#data_representation */
 
 // elf32 type definitions
@@ -122,6 +124,7 @@ typedef enum e_sh_type
   SHT_HIUSER = 0xffffffff // Higher bound of above
 } sh_type;
 
+// https://refspecs.linuxbase.org/elf/x86_64-abi-0.99.pdf
 typedef enum e_sh_flags
 {
   SHF_WRITE = 1, // Data writable during process exec.
@@ -132,10 +135,11 @@ typedef enum e_sh_flags
   SHF_INFO_LINK = (1 << 7), // sh_info holds a section header table index
   SHF_LINK_ORDER = (1 << 8), // Special order requirements for linking
   SHF_OS_NONCONFORMING = (1 << 9),
-  // Special OS_specific processing (sh_type, sh_flags in OS-specific ranges validation)
+  // Special OS_specific processing (sh_type, sh_flags in OS-specific ranges validation),
   SHF_GROUP = (1 << 10), // Member of a section group (e_type must be set to ET_REL)
   SHF_TLS = (1 << 11), // Holds thread-localstorage
   SHF_MASKOS = 0x0ff00000, // Reserved for os-specific semantics
+  SHT_X86_64_UNWIND = 0x70000001, // Section contains unwind function table entries
   SHF_MASKPROC = 0xf0000000 // Reserved for processor-specific semantics
 } sh_flags;
 
@@ -160,6 +164,7 @@ typedef enum e_st_type
   STT_COMMON = 5, // Labels an uninitialized common block
   STT_TLS = 6, // Symbol specifies a Thread-Local-Storage entity
   STT_LOOS = 10, // Reserved for OS
+  STT_GNU_IFUNC = 10, // GNU extension, symbol is an indirect function
   STT_HIOS = 12, // ""
   STT_LOPROC = 13, // Reserved for processor
   STT_HIPROC = 15 // ""
@@ -186,9 +191,19 @@ typedef enum e_st_shndx
   SHN_HIRESERVE = 0xffff
 } st_shndx;
 
+typedef struct s_sym_info
+{
+  st_type  type;
+  st_bind  bind;
+  st_shndx shndx;
+  char    *sh_name;
+  sh_type  sh_type;
+  sh_flags sh_flags;
+} t_sym_info;
+
 typedef struct s_symbol
 {
-  void* sym_ptr;
+  void* sym_value;
   char* sym_name;
   char sym_type;
 } t_symbol;
@@ -248,6 +263,8 @@ void parse_symbols_to_nm_fmt_x64(t_bin*, t_nm*);
 t_list* build_new_shdr_node(void*, ei_class, t_nm*);
 t_list *build_new_sym_node(void *, ei_class, uint32_t , t_nm *);
 
+char get_nm_symbol(t_sym_info );
+bool set_nm_visibility(char, t_sym_info );
 void output_nm_symbols(t_bin*, t_nm*);
 
 void log_error(error, char*);

@@ -67,7 +67,7 @@ t_list *build_new_sym_node(void *sym, ei_class b_class, uint32_t sh_link, t_nm *
 
 t_list *build_new_shdr_node(void* shdr, ei_class class, t_nm* ctx)
     {
-  size_t  shdr_size = (class == ELFCLASS64) ? sizeof(t_Elf64_Shdr) : sizeof(t_Elf32_Shdr);
+  size_t  shdr_size = (class == ELFCLASS64) ? sizeof(t_Elf64_Shdr) : sizeof(t_Elf32_Shdr); // macro get size
   void   *shdr_content = malloc(shdr_size);
   t_list *shdr_node;
 
@@ -129,14 +129,6 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char
   }
 }
 
-// aqui deberiamos trabajar los simbolos
-
-// -a: printa todos los simbolos (cuales no deberiamos printar ??
-// se debe ordenar la lista de simbolos antes
-// -g: solo simbolos externos (globales, weakos)
-// -u: solo undefined (undefined subgrupo de externos ??)
-// -p: no lanzamos la ordenacion
-// -r: reversa sorta
 
 void output_nm_symbols(t_bin* bin, t_nm* ctx)
 {
@@ -163,11 +155,10 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
         }
         else {
             if (bin->b_class == ELFCLASS32)
-              printf("%08lx", (unsigned long)nm_sym->sym_ptr); // to write
+              printf("%08lx", (unsigned long)nm_sym->sym_value); // to write
             if (bin->b_class == ELFCLASS64)
-              printf("%016lx", (unsigned long)nm_sym->sym_ptr); // to write
+              printf("%016lx", (unsigned long)nm_sym->sym_value); // to write
         }
         printf(" %c %s\n",nm_sym->sym_type, nm_sym->sym_name); //to write
-        //node = node->next;
     }
 }

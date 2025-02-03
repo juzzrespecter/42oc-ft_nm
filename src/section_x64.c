@@ -1,6 +1,6 @@
-#include "../../include/nm.h"
-#include "../../include/nm_x64.h"
-
+#include "../include/nm.h"
+#include "../include/nm_x64.h"
+#ifdef _NM_DEBUG
 static void TEST_print_symbols(t_bin *b)
 {
   t_list *n = b->b_sym_lst;
@@ -22,6 +22,7 @@ static void TEST_print_sections(t_bin *b)
     n = n->next;
   }
 }
+#endif
 
 t_Elf64_Shdr *find_section_header_x64(size_t shndx, t_bin *bin)
 {
@@ -105,7 +106,7 @@ static void parser_elf_section_x64(t_bin *bin, t_nm *ctx) {
        parse_symbol_table_x64(shdr, bin, ctx);
     i++;
   }
-# ifdef DEBUG
+# ifdef _NM_DEBUG
   TEST_print_sections(bin);
   TEST_print_symbols(bin);
 # endif

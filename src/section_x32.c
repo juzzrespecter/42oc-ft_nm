@@ -1,7 +1,5 @@
-#include <nm_x64.h>
-
-#include "../../include/nm_x32.h"
-#include "../../include/nm.h"
+#include "../include/nm_x32.h"
+#include "../include/nm.h"
 
 static void parse_strtab(t_Elf32_Shdr *shdr, size_t strtab_index, t_bin* bin, t_nm *ctx)
 {
