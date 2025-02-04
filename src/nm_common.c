@@ -140,8 +140,8 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
       sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strcnmp_rev);
     node = bin->b_nm_sym_lst;
 
-    write(STDOUT_FILENO, bin->b_src, ft_strlen(bin->b_src)); // esto solo printa cuando hay mas de uno
-    write(STDOUT_FILENO, "\n", 1);
+    write(STDOUT_FILENO, bin->b_path, ft_strlen(bin->b_path)); // esto solo printa cuando hay mas de uno
+    write(STDOUT_FILENO, ":\n", 2);
     for (; node != NULL; node=node->next) // probar esto, la i pa que
     {
         t_symbol *nm_sym = (t_symbol *)node->content;
@@ -155,9 +155,9 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
         }
         else {
             if (bin->b_class == ELFCLASS32)
-              printf("%08lx", (unsigned long)nm_sym->sym_value); // to write
+              printf("%08lx", nm_sym->sym_value); // to write
             if (bin->b_class == ELFCLASS64)
-              printf("%016lx", (unsigned long)nm_sym->sym_value); // to write
+              printf("%016lx", nm_sym->sym_value); // to write
         }
         printf(" %c %s\n",nm_sym->sym_type, nm_sym->sym_name); //to write
     }

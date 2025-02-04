@@ -52,7 +52,8 @@ int clean_context(t_nm* ctx)
 
   if (ctx)
   {
-    ft_lstclear(&ctx->b_lst, del_binlst);
+    if (ctx->b_lst)
+      ft_lstclear(&ctx->b_lst, del_binlst);
     program_state = ctx->state;
   }
   return program_state;
@@ -67,10 +68,7 @@ void log_error(error code, char* arg)
   else
     sprintf(buffer, "ft_nm");
   if (code == ERR_SYS)
-  {
-    perror(buffer);
-    return;
-  }
+    return perror(buffer);
   write(STDERR_FILENO, buffer, ft_strlen(buffer));
   write(STDERR_FILENO, ": ", 2);
   write(STDERR_FILENO, reason[code], ft_strlen(reason[code]));

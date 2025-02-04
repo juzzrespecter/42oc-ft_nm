@@ -19,6 +19,11 @@
 # define REV_SORT_F   (1<<4)
 
 typedef struct stat t_stat;
+typedef struct s_st
+{
+  const char *section;
+  char type;
+} t_st;
 
 typedef enum e_error
 {
@@ -203,7 +208,7 @@ typedef struct s_sym_info
 
 typedef struct s_symbol
 {
-  void* sym_value;
+  unsigned long sym_value;
   char* sym_name;
   char sym_type;
 } t_symbol;
@@ -255,10 +260,7 @@ void parser_elf(t_bin*, t_nm*);
 char* select_strtab(size_t, t_bin*);
 
 void parser_elf_hdr_x32(t_bin*, t_nm*);
-void parse_symbols_to_nm_fmt_x32(t_bin*, t_nm*);
-
 void parser_elf_hdr_x64(t_bin*, t_nm*);
-void parse_symbols_to_nm_fmt_x64(t_bin*, t_nm*);
 
 t_list* build_new_shdr_node(void*, ei_class, t_nm*);
 t_list *build_new_sym_node(void *, ei_class, uint32_t , t_nm *);

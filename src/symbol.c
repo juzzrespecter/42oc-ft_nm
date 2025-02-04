@@ -1,11 +1,5 @@
 # include "../include/nm.h"
 
-typedef struct s_st
-    {
-  const char *section;
-  char type;
-  } t_st;
-
 static const t_st section_type[] =
 {
   {".bss", 'b'},
@@ -42,10 +36,10 @@ static char get_nm_symbol_by_section_name(char *sh_name)
 static char get_nm_symbol_by_section_type(t_sym_info sym)
 {
   if (sym.sh_type == SHT_NOBITS && sym.sh_flags & (SHF_ALLOC | SHF_WRITE))
-    return 's';
-  if (sym.sh_type == SHT_PROGBITS && sym.sh_flags & (SHF_ALLOC | SHF_WRITE))
+    return 'b';
+  if (sym.sh_type == SHT_PROGBITS && sym.sh_flags & SHF_ALLOC && sym.sh_flags & SHF_WRITE)
     return 'd';
-  if (sym.sh_type == SHT_PROGBITS && !(sym.sh_flags & SHF_WRITE))
+  if (sym.sh_type == SHT_PROGBITS && !(sym.sh_flags & (SHF_WRITE|SHF_EXECINSTR)) && sym.sh_flags & SHF_ALLOC)
     return 'r';
   if (!(sym.sh_type == SHT_PROGBITS || sym.sh_type == SHT_NOBITS) && !(sym.sh_flags & SHF_WRITE))
     return 'n';
@@ -62,9 +56,9 @@ char get_nm_symbol(t_sym_info sym)
   if (sym.shndx == SHN_UNDEF && !(sym.bind == STB_WEAK))
     return 'U';
   if (sym.shndx == SHN_UNDEF && sym.bind == STB_WEAK && sym.type == STT_OBJECT)
-    return 'V';
+    return 'v';
   if (sym.shndx == SHN_UNDEF && sym.bind == STB_WEAK && sym.type == STT_FUNC)
-    return 'W';
+    return 'w';
   if (sym.shndx == SHN_UNDEF) // esto es mentira, identificar secciones indirectas
     return 'I';
   if (sym.type == STT_GNU_IFUNC)
@@ -72,7 +66,12 @@ char get_nm_symbol(t_sym_info sym)
   //if (sym.type & STT_GNU_UNIQUE)
   //  return 'u';
   // agotamos tipos débiles
-  if (!(sym.type & (STB_GLOBAL | STB_LOCAL)))
+  if (sym.bind & STB_WEAK && sym.type == STT_OBJECT)
+    return 'V';
+  if (sym.bind & STB_WEAK && sym.type == STT_FUNC)
+    return 'W';
+
+  if (!(sym.bind == STB_GLOBAL || sym.bind == STB_LOCAL))
       return '?';
 
   if (sym.shndx == SHN_ABS)

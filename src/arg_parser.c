@@ -29,7 +29,7 @@ static void print_usage_and_exit()
         "     -r, --reverse-sort     Reverse the sense of the sort\n"
         "     -p, --no-sort          Do not sort the symbols\n";
 
-    write(STDIN_FILENO, usage, ft_strlen(usage));
+    write(STDERR_FILENO, usage, ft_strlen(usage));
     exit(EXIT_FAILURE);
 }
 
