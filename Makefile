@@ -6,10 +6,8 @@ SRC := nm.c \
        arg_parser.c \
        elf_parser.c \
        symbol.c \
-       section_x32.c \
-       symbol_x32.c \
-       section_x64.c \
-       symbol_x64.c
+       x32_parse.c \
+       x64_parse.c
 
 INCLUDE := nm.h
 
