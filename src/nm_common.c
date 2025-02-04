@@ -10,15 +10,15 @@
  * @param bin   ;; binario
  * @return      ;; tabla seleccionada || NULL
  */
-char *select_strtab(size_t index, t_bin *bin)
+char* select_strtab(size_t index, t_bin* bin)
 {
-  char   *selected_strtab = NULL;
-  char   *shstrtab = NULL;
-  t_list *node = bin->b_strtab_lst;
+  char* selected_strtab = NULL;
+  char* shstrtab = NULL;
+  t_list* node = bin->b_strtab_lst;
 
   while (node != NULL)
   {
-    t_strtab *n_strtab = node->content;
+    t_strtab* n_strtab = node->content;
     if (n_strtab->strtab_index == index)
       selected_strtab = n_strtab->strtab;
     if (n_strtab->strtab_index == bin->shstrndx)
@@ -39,37 +39,37 @@ char *select_strtab(size_t index, t_bin *bin)
  * @param ctx ;; contexto del programa.
  * @return
  */
-t_list *build_new_sym_node(void *sym, ei_class b_class, uint32_t sh_link, t_nm *ctx)
+t_list* build_new_sym_node(void* sym, ei_class b_class, uint32_t sh_link, t_nm* ctx)
 {
-    size_t             sym_size = (b_class == ELFCLASS64) ? sizeof(t_Elf64_Sym) : sizeof(t_Elf32_Sym);
-    void              *sym_content = ft_calloc(1, sym_size);
-    t_Elf_Sym_wrapper *sym_wrapper = ft_calloc(1, sizeof(t_Elf_Sym_wrapper));
-    t_list *sym_node;
+  size_t sym_size = (b_class == ELFCLASS64) ? sizeof(t_Elf64_Sym) : sizeof(t_Elf32_Sym);
+  void* sym_content = ft_calloc(1, sym_size);
+  t_Elf_Sym_wrapper* sym_wrapper = ft_calloc(1, sizeof(t_Elf_Sym_wrapper));
+  t_list* sym_node;
 
-    if (sym_content == NULL || sym_wrapper == NULL)
-    {
-        free(sym_content);
-        free(sym_wrapper);
-        log_and_exit(ERR_SYS, NULL, ctx);
-    }
-    ft_memcpy(sym_content, sym, sym_size);
-    sym_wrapper->sh_link = sh_link;
-    sym_wrapper->sym = sym_content;
-    sym_node = ft_lstnew(sym_wrapper);
-    if (sym_node == NULL)
-    {
-        free(sym_content);
-        free(sym_wrapper);
-        log_and_exit(ERR_SYS, NULL, ctx);
-    }
-    return sym_node;
+  if (sym_content == NULL || sym_wrapper == NULL)
+  {
+    free(sym_content);
+    free(sym_wrapper);
+    log_and_exit(ERR_SYS, NULL, ctx);
+  }
+  ft_memcpy(sym_content, sym, sym_size);
+  sym_wrapper->sh_link = sh_link;
+  sym_wrapper->sym = sym_content;
+  sym_node = ft_lstnew(sym_wrapper);
+  if (sym_node == NULL)
+  {
+    free(sym_content);
+    free(sym_wrapper);
+    log_and_exit(ERR_SYS, NULL, ctx);
+  }
+  return sym_node;
 }
 
-t_list *build_new_shdr_node(void* shdr, ei_class class, t_nm* ctx)
-    {
-  size_t  shdr_size = (class == ELFCLASS64) ? sizeof(t_Elf64_Shdr) : sizeof(t_Elf32_Shdr); // macro get size
-  void   *shdr_content = malloc(shdr_size);
-  t_list *shdr_node;
+t_list* build_new_shdr_node(void* shdr, ei_class class, t_nm* ctx)
+{
+  size_t shdr_size = (class == ELFCLASS64) ? sizeof(t_Elf64_Shdr) : sizeof(t_Elf32_Shdr); // macro get size
+  void* shdr_content = malloc(shdr_size);
+  t_list* shdr_node;
 
   if (shdr_content == NULL)
     log_and_exit(ERR_SYS, NULL, ctx);
@@ -81,11 +81,11 @@ t_list *build_new_shdr_node(void* shdr, ei_class class, t_nm* ctx)
     log_and_exit(ERR_SYS, NULL, ctx);
   }
   return shdr_node;
-  }
+}
 
 static int ft_strcnmp_rev(const char* a, const char* b, size_t len)
 {
-    return -1 * ft_strncmp(a, b, len);
+  return -1 * ft_strncmp(a, b, len);
 }
 
 /**
@@ -93,11 +93,11 @@ static int ft_strcnmp_rev(const char* a, const char* b, size_t len)
 */
 static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char*, size_t))
 {
-  size_t  len = ft_lstsize(*alst);
+  size_t len = ft_lstsize(*alst);
   t_list *node, *prev, *next;
 
   for (size_t i = 0; i < len; i++)
-    {
+  {
     node = *alst;
     prev = *alst;
     while (node != NULL)
@@ -105,21 +105,21 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char
       next = node->next;
       if (next == NULL)
         break ;
-      t_symbol *sym = node->content;
-      t_symbol *sym_next = next->content;
+      t_symbol* sym = node->content;
+      t_symbol* sym_next = next->content;
       if (cmp(sym->sym_name, sym_next->sym_name, ft_strlen(sym->sym_name) + 1) < 0)
       {
         if (node == *alst)
         {
-            *alst = next;
-            node->next = (*alst)->next;
-            (*alst)->next = node;
+          *alst = next;
+          node->next = (*alst)->next;
+          (*alst)->next = node;
         }
         else
         {
-         prev->next = next;
-         node->next = next->next;
-         next->next = node;
+          prev->next = next;
+          node->next = next->next;
+          next->next = node;
         }
       }
       prev = node;
@@ -129,36 +129,46 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char
   }
 }
 
+void print_value(unsigned long value, int class, int undef)
+{
+  char buffer[16];
+  int  len = (class == ELFCLASS32) ? 8 : 16;
+  char pad = (undef) ? ' ' : '0';
+
+  ft_memset(buffer, pad, 16);
+  for (int i = 15; i >= 0 && value && !undef; value = value / 16)
+    buffer[i--] = "0123456789abcdef"[value % 16];
+  if (class == ELFCLASS32 && !undef)
+    ft_memmove(buffer, buffer + 8, 8);
+  write(STDOUT_FILENO, buffer, len);
+}
 
 void output_nm_symbols(t_bin* bin, t_nm* ctx)
 {
-    t_list *node;
+  t_list*   node;
+  t_symbol* nm_sym;
 
-    if (!(ctx->flags & NO_SORT_F) && ctx->flags & REV_SORT_F)
-      sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strncmp);
-    if (!(ctx->flags & NO_SORT_F) && !(ctx->flags & REV_SORT_F))
-      sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strcnmp_rev);
-    node = bin->b_nm_sym_lst;
+  if (!(ctx->flags & NO_SORT_F) && ctx->flags & REV_SORT_F)
+    sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strncmp);
+  if (!(ctx->flags & NO_SORT_F) && !(ctx->flags & REV_SORT_F))
+    sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strcnmp_rev);
+  node = bin->b_nm_sym_lst;
 
-    write(STDOUT_FILENO, bin->b_path, ft_strlen(bin->b_path)); // esto solo printa cuando hay mas de uno
+  if (ctx->b_lst->next) // temporal, guarro
+  {
+    write(STDOUT_FILENO, "\n", 1);
+    write(STDOUT_FILENO, bin->b_path, ft_strlen(bin->b_path));
     write(STDOUT_FILENO, ":\n", 2);
-    for (; node != NULL; node=node->next) // probar esto, la i pa que
-    {
-        t_symbol *nm_sym = (t_symbol *)node->content;
+  }
+  for (; node != NULL; node = node->next)
+  {
+    nm_sym = (t_symbol*)node->content;
 
-        if (nm_sym->sym_type == 'U')
-        {
-            if (bin->b_class == ELFCLASS32)
-              write(STDOUT_FILENO, "        ", 8);
-            if (bin->b_class == ELFCLASS64)
-              write(STDOUT_FILENO, "                ", 16);
-        }
-        else {
-            if (bin->b_class == ELFCLASS32)
-              printf("%08lx", nm_sym->sym_value); // to write
-            if (bin->b_class == ELFCLASS64)
-              printf("%016lx", nm_sym->sym_value); // to write
-        }
-        printf(" %c %s\n",nm_sym->sym_type, nm_sym->sym_name); //to write
-    }
+    print_value(nm_sym->sym_value, bin->b_class, nm_sym->sym_type == 'U');
+    write(STDOUT_FILENO, " ", 1);
+    write(STDOUT_FILENO, &nm_sym->sym_type, 1);
+    write(STDOUT_FILENO, " ", 1);
+    write(STDOUT_FILENO, nm_sym->sym_name, ft_strlen(nm_sym->sym_name));
+    write(STDOUT_FILENO, "\n", 1);
+  }
 }
