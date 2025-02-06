@@ -1,30 +1,6 @@
 #include "../include/nm.h"
 #include "../include/nm_x64.h"
 
-#ifdef _NM_DEBUG
-static void TEST_print_symbols(t_bin *b)
-{
-  t_list *n = b->b_sym_lst;
-
-  for (size_t i = 0; n != NULL; i++)
-  {
-    print_symbol_table_x64((t_Elf_Sym_wrapper *)n->content, b, i);
-    n = n->next;
-  }
-}
-
-static void TEST_print_sections(t_bin *b)
-{
-  t_list *n = b->b_elf_shdr;
-
-  for (int i = 0; n != NULL; i++)
-  {
-    print_section_values_x64((t_Elf64_Shdr *)n->content, b, i);
-    n = n->next;
-  }
-}
-#endif
-
 static void parse_strtab(t_Elf64_Shdr* shdr, size_t strtab_index, t_bin* bin, t_nm* ctx)
 {
   void* shdr_strtab = bin->b_src + shdr->sh_offset;
@@ -113,9 +89,10 @@ static t_symbol* build_new_nm_symbol(t_Elf_Sym_wrapper* wr_sym, t_bin* bin, t_nm
   ft_nm_sym = ft_calloc(1, sizeof(t_symbol));
   if (!ft_nm_sym)
     log_and_exit(ERR_SYS, NULL, ctx);
+  ft_nm_sym->shndx = sym->st_shndx;
   ft_nm_sym->sym_value = (unsigned long)sym->st_value;
   ft_nm_sym->sym_type = get_nm_symbol(s);
-  ft_nm_sym->sym_name = &strtab[sym->st_name];
+  ft_nm_sym->sym_name = get_sym_name(shstrtab, strtab, type, sym->st_name);
 
   return ft_nm_sym;
 }
@@ -159,8 +136,6 @@ static void parser_elf_section_x64(t_bin* bin, t_nm* ctx)
 
     if (shdr->sh_type == SHT_STRTAB)
       parse_strtab(shdr, i, bin, ctx);
-    //if (shdr->sh_type == SHT_SYMTAB || shdr->sh_type == SHT_DYNSYM)
-    //   parse_symbol_table_x64(shdr, bin, ctx);
     if (shdr->sh_type == SHT_SYMTAB)
       parse_symbol_table(shdr, bin, ctx);
     i++;

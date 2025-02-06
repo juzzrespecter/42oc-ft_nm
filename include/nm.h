@@ -19,9 +19,10 @@
 # define REV_SORT_F   (1<<4)
 
 typedef struct stat t_stat;
+
 typedef struct s_st
 {
-  const char *section;
+  const char* section;
   char type;
 } t_st;
 
@@ -154,6 +155,7 @@ typedef enum e_st_bind
   STB_GLOBAL = 1, // Symbol is global (satisfies all file's reference)
   STB_WEAK = 2, // Symbol is weak (lower precedence than local)
   STB_LOOS = 10, // Lower bound for OS-specific semantics
+  STB_GNU_UNIQUE = 10, // GNU extension, unique global symbol
   STB_HIOS = 12, // Higher bound for OS-specific semantics
   STB_LOPROC = 13, // Lower bound for processor-specific semantics
   STB_HIPROC = 15 // Higher bound for porcessor-specific semantics
@@ -198,16 +200,17 @@ typedef enum e_st_shndx
 
 typedef struct s_sym_info
 {
-  st_type  type;
-  st_bind  bind;
+  st_type type;
+  st_bind bind;
   st_shndx shndx;
-  char    *sh_name;
-  sh_type  sh_type;
+  char* sh_name;
+  sh_type sh_type;
   sh_flags sh_flags;
 } t_sym_info;
 
 typedef struct s_symbol
 {
+  st_shndx shndx;
   unsigned long sym_value;
   char* sym_name;
   char sym_type;
@@ -263,10 +266,11 @@ void parser_elf_hdr_x32(t_bin*, t_nm*);
 void parser_elf_hdr_x64(t_bin*, t_nm*);
 
 t_list* build_new_shdr_node(void*, ei_class, t_nm*);
-t_list *build_new_sym_node(void *, ei_class, uint32_t , t_nm *);
+t_list* build_new_sym_node(void*, ei_class, uint32_t, t_nm*);
 
-char get_nm_symbol(t_sym_info );
-bool set_nm_visibility(char, t_sym_info );
+char* get_sym_name(char*, char*, st_type, int);
+char get_nm_symbol(t_sym_info);
+bool set_nm_visibility(char, t_sym_info);
 void output_nm_symbols(t_bin*, t_nm*);
 
 void log_error(error, char*);

@@ -13,38 +13,12 @@ END="\033[0m"
 EMPTY_FILE="
 "
 
-OBJ_FILE="
-static int variable_global_estatica_sin_inicializar;
-static int variable_global_estatica_inicializada = 1;
-static const int variable_global_estatica_constante = 1;
-
-__attribute__((weak)) int variable_debil;
-__attribute__((weak)) int variable_debil_inicializada = 2;
-
-static void function_estatica() {
-  static int variable_local_estatica;
-
-  printf(\"Llamada a funcion externa de libreria\");
-}
-
-volatile int variable_volatil;
-extern int variable_externa;
-
-void function_linkable(int a, int b, char* c) {
-  static int variable_local_estatica;
-
-  function_estatica();
-}
-void declaracion_de_otra_funcion(int a, int b);
-
-__attribute__((weak)) int funcion_debil(int a, int b);
-"
 SUM_FILE="
 int sum(int a, int b) {
   return a + b;
 }
 "
-MAIN_FILE="
+MAIN_CPP_FILE="
 # include <stdexcept>
 # include <iostream>
 int sum(int a, int b);
@@ -62,52 +36,190 @@ int main() {
   return 0;
 }
 "
+MAIN_C_FILE="
+# include <stdio.h>
+int sum(int a, int b);
 
+int main() {
+  static int a;
 
-function exec_test() {
+  a = sum(1, 2);
+  printf(\"Result: %d\n\", a);
+  return 0;
+}
+"
+
+OBJ_C_FILE="
+# include <stdio.h>
+extern int simbolo_marcado_como_externo;
+
+asm(\".globl variable_absoluta\");
+asm(\"variable_absoluta = 0x42\");
+__attribute__((weak)) void funcion_debil();
+__attribute__((weak)) int variable_debil;
+int variable_global;
+int variable_global_inicializada = 4;
+const int variable_global_constante = 3;
+static char *variable_estatica_global = \"test command\";
+void funcion_sin_definir();
+static const char* variable_estatica_global_constante = \"hola\";
+void funcion_definida_linkable() {
+  extern const int variable_local_constante;
+  static const int variable_estatica_constante_local = '3';
+  static char *variable_estatica_local = \"test command\";
+  return ;
+}
+volatile int variable_volatil;
+__attribute__((weak))
+int funcion_debil_definida() {
+	printf(\"Dale\");
+}
+void *funcion_indirecta_resuelta(void)
+{
+        printf(\"Void resolvido\n\");
+}
+void funcion_indirecta(unsigned long bar, ...) __attribute__((ifunc(\"funcion_indirecta_resuelta\")));
+"
+
+OBJ_CPP_FILE="
+# include <stdio.h>
+extern int simbolo_marcado_como_externo;
+
+asm(\".globl variable_absoluta\");
+asm(\"variable_absoluta = 0x42\");
+__attribute__((weak)) void funcion_debil();
+__attribute__((weak)) int variable_debil;
+int variable_global;
+int variable_global_inicializada = 4;
+const int variable_global_constante = 3;
+static char *variable_estatica_global = \"test command\";
+void funcion_sin_definir();
+static const char* variable_estatica_global_constante = \"hola\";
+void funcion_definida_linkable() {
+  extern const int variable_local_constante;
+  static const int variable_estatica_constante_local = '3';
+  static char *variable_estatica_local = \"test command\";
+  return ;
+}
+volatile int variable_volatil;
+__attribute__((weak))
+int funcion_debil_definida() {
+	printf(\"Dale\");
+}
+"
+
+function exec_test_obj_file() {
   rm -f logs $FILE_NAME
-  export CXX=gcc
   echo -n "Executing test $TEST_NAME ..."
-  cat << EOF | $CXX -x c - -c -o $FILE_NAME 2>/dev/null
-$ELF_FILE
+  cat << EOF | $CXX $ARCH_FLAG -x $TYPE - -c -o $FILE_NAME 2>/dev/null
+$OBJ_FILE
 EOF
   diff <($NM $FLAGS $FILE_NAME 2>&1) <($FT_NM $FLAGS $FILE_NAME 2>&1) >./logs
   if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
 }
 
-function exec_test_cpp() {
+function exec_test_binary() {
   rm -f logs $FILE_NAME
-  export CXX=g++
   echo -n "Executing test $TEST_NAME ..."
-  cat << EOF | $CXX -x c - -c -o $FILE_NAME 2>/dev/null
-$ELF_FILE
-EOF
-  diff <($NM $FLAGS $FILE_NAME 2>&1) <($FT_NM $FLAGS $FILE_NAME 2>&1) >./logs
-  if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
-}
-
-function exec_test_binary_cpp_32() {
-  rm -f logs $FILE_NAME
-  export CXX=g++
-  echo -n "Executing test $TEST_NAME ..."
-  cat << EOF | $CXX -m32 -x c - -c -o sum.o 2>/dev/null
+  cat << EOF | $CXX $ARCH_FLAG -x $TYPE - -c -o sum.o 2>/dev/null
 $SUM_FILE
 EOF
-  cat << EOF | $CXX -m32 -x c - -c -o main.o 2>/dev/null
+  cat << EOF | $CXX $ARCH_FLAG -x $TYPE - -c -o main.o 2>/dev/null
 $MAIN_FILE
 EOF
-  $CXX -m32 sum.o main.o -o $FILE_NAME
+  $CXX $ARCH_FLAG sum.o main.o -o $FILE_NAME
   diff <($NM $FLAGS $FILE_NAME 2>&1) <($FT_NM $FLAGS $FILE_NAME 2>&1) >./logs
   if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
 }
 
-# exec test 32
+function exec_test_so() {
+  rm -f logs $FILE_NAME
+  echo -n "Executing test $TEST_NAME ..."
+  cat << EOF | $CXX $ARCH_FLAG -shared -fPIC -x $TYPE - -o $FILE_NAME 2>/dev/null
+$OBJ_FILE
+EOF
+  diff <($NM $FLAGS $FILE_NAME 2>&1) <($FT_NM $FLAGS $FILE_NAME 2>&1) >./logs
+  if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
+}
 
-# exec test 32 cpp
+function exec_multiple() {
+  rm -f logs exec_file_m32 obj_file.o
+  echo "int main() { static int variable = 0; printf(\"Lib func call\n\"); }" | gcc -m32 -x c - -o exec_file_m32 2>/dev/null
+  echo "const char *const_global_var=\"Const global var\";static int static_global_var; void undefined_func();" | g++ -x c++ - -c -o obj_file.o 2>/dev/null
+  ARGS="-a -r exec_file_m32 obj_file exec_file_m32"
+  diff <($NM $ARGS 2>&1) <($FT_NM $ARGS 2>&1) >./logs
+  if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
+}
 
-# multi w failures
+function exec_multiple_w_fails() {
+  rm -f logs exec_file_m32 obj_file.o
+  echo "int main() { static int variable = 0; printf(\"Lib func call\n\"); }" | gcc -m32 -x c - -o exec_file_m32 2>/dev/null
+  echo "const char *const_global_var=\"Const global var\";static int static_global_var; void undefined_func();" | g++ -x c++ - -c -o obj_file.o 2>/dev/null
+  echo "text file" > text_file
+  ARGS="-a -r exec_file_m32 bad_file obj_file exec_file_m32 text_file"
+  diff <($NM $ARGS 2>&1) <($FT_NM $ARGS 2>&1) >./logs
+  if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
+}
 
-# multi
+function exec_test_obj_file_c_m32() {
+  export TEST_NAME FLAGS CXX=gcc OBJ_FILE=$OBJ_C_FILE ARCH_FLAG=-m32 FILE_NAME=test_file.o TYPE='c'
+  exec_test_obj_file
+}
+
+function exec_test_obj_file_c_m64() {
+  export TEST_NAME FLAGS CXX=gcc OBJ_FILE=$OBJ_C_FILE  ARCH_FLAG=-m64 FILE_NAME=test_file.o TYPE='c'
+  exec_test_obj_file
+}
+
+function exec_test_obj_file_cpp_m32() {
+  export TEST_NAME FLAGS CXX=g++ OBJ_FILE=$OBJ_CPP_FILE  ARCH_FLAG=-m32 FILE_NAME=test_file.o TYPE='c++'
+  exec_test_obj_file
+}
+
+function exec_test_obj_file_cpp_m64() {
+  export TEST_NAME FLAGS CXX=g++ OBJ_FILE=$OBJ_CPP_FILE ARCH_FLAG=-m64 FILE_NAME=test_file.o TYPE='c++'
+  exec_test_obj_file
+}
+
+function exec_test_binary_c_m32() {
+  export TEST_NAME FLAGS CXX=gcc MAIN_FILE=$MAIN_C_FILE ARCH_FLAG=-m32 FILE_NAME=test_file TYPE='c'
+  exec_test_binary
+}
+
+function exec_test_binary_c_m64() {
+  export TEST_NAME FLAGS CXX=gcc MAIN_FILE=$MAIN_C_FILE ARCH_FLAG=-m64 FILE_NAME=test_file TYPE='c'
+  exec_test_binary
+}
+
+function exec_test_binary_cpp_m32() {
+  export TEST_NAME FLAGS CXX=g++ MAIN_FILE=$MAIN_CPP_FILE ARCH_FLAG=-m32 FILE_NAME=test_file TYPE='c++'
+  exec_test_binary
+}
+
+function exec_test_binary_cpp_m64() {
+  export TEST_NAME FLAGS CXX=g++ MAIN_FILE=$MAIN_CPP_FILE ARCH_FLAG=-m64 FILE_NAME=test_file TYPE='c++'
+  exec_test_binary
+}
+
+function exec_test_so_c_m32() {
+  export TEST_NAME FLAGS CXX=gcc MAIN_FILE=$MAIN_C_FILE ARCH_FLAG=-m32 FILE_NAME=test_file TYPE='c'
+  exec_test_so
+}
+
+function exec_test_so_c_m64() {
+  export TEST_NAME FLAGS CXX=gcc MAIN_FILE=$MAIN_C_FILE ARCH_FLAG=-m64 FILE_NAME=test_file TYPE='c'
+  exec_test_so
+}
+
+function exec_test_so_cpp_m32() {
+  export TEST_NAME FLAGS CXX=g++ MAIN_FILE=$MAIN_CPP_FILE ARCH_FLAG=-m32 FILE_NAME=test_file TYPE='c++'
+  exec_test_so
+}
+
+function exec_test_so_cpp_m64() {
+  export TEST_NAME FLAGS CXX=g++ MAIN_FILE=$MAIN_CPP_FILE ARCH_FLAG=-m64 FILE_NAME=test_file TYPE='c++'
+  exec_test_so
+}
 
 make
 
@@ -116,28 +228,122 @@ pushd $TEST_DIR
 
 cp ../$FT_NM .
 
-# tests error no binario
+echo "[ TEST NO ARGS ]"
+$FT_NM
 
-# tests flags incorrectas
+echo "[ TEST FLAGS NO ARGS ]"
+$FT_NM -a -g -u
 
-# test vacio a.out
+echo "[ TEST FORMAT NOT RECOGNIZED ]"
+# ...
 
-echo "[ OBJECT FILE TESTS ]"
-ELF_FILE=$OBJ_FILE FLAGS="" TEST_NAME="[ without flags ]" FILE_NAME="test" exec_test
-ELF_FILE=$OBJ_FILE FLAGS="-a" TEST_NAME="[ -a flag ]" FILE_NAME="test" exec_test
-ELF_FILE=$OBJ_FILE FLAGS="-g" TEST_NAME="[ -g flag ]" FILE_NAME="test" exec_test
-ELF_FILE=$OBJ_FILE FLAGS="-u" TEST_NAME="[ -u flag ]" FILE_NAME="test" exec_test
-ELF_FILE=$OBJ_FILE FLAGS="-r" TEST_NAME="[ -r flag ]" FILE_NAME="test" exec_test
-ELF_FILE=$OBJ_FILE FLAGS="-p" TEST_NAME="[ -p flag ]" FILE_NAME="test" exec_test
-#exec_test
+echo "[ TEST BAD FLAGS ]"
+# ...
 
-echo "[ OBJECT FILE CPP TESTS ]"
-ELF_FILE=$OBJ_FILE FLAGS="" TEST_NAME="[ without flags ]" FILE_NAME="test_cpp" exec_test_cpp
-ELF_FILE=$OBJ_FILE FLAGS="-a" TEST_NAME="[ -a flag ]" FILE_NAME="test_cpp" exec_test_cpp
-ELF_FILE=$OBJ_FILE FLAGS="-g" TEST_NAME="[ -g flag ]" FILE_NAME="test_cpp" exec_test_cpp
-ELF_FILE=$OBJ_FILE FLAGS="-u" TEST_NAME="[ -u flag ]" FILE_NAME="test_cpp" exec_test_cpp
-ELF_FILE=$OBJ_FILE FLAGS="-r" TEST_NAME="[ -r flag ]" FILE_NAME="test_cpp" exec_test_cpp
-ELF_FILE=$OBJ_FILE FLAGS="-p" TEST_NAME="[ -p flag ]" FILE_NAME="test_cpp" exec_test_cpp
+echo "[ TEST EMPTY BINARY ]"
+# ...
+
+echo "[ OBJECT FILE TESTS 32 ]"
+TEST_NAME="[ w\o flags ]" FLAGS="" exec_test_obj_file_c_m32
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_obj_file_c_m32
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_obj_file_c_m32
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_obj_file_c_m32
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_obj_file_c_m32
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_obj_file_c_m32
+
+echo "[ OBJECT FILE TESTS 64 ]"
+FLAGS="" TEST_NAME="[ w\o flags ]" exec_test_obj_file_c_m64
+FLAGS="-a" TEST_NAME="[ -a flag ]" exec_test_obj_file_c_m64
+FLAGS="-g" TEST_NAME="[ -g flag ]" exec_test_obj_file_c_m64
+FLAGS="-u" TEST_NAME="[ -u flag ]" exec_test_obj_file_c_m64
+FLAGS="-r" TEST_NAME="[ -r flag ]" exec_test_obj_file_c_m64
+FLAGS="-p" TEST_NAME="[ -p flag ]" exec_test_obj_file_c_m64
+
+echo "[ OBJECT FILE CPP TESTS 32 ]"
+TEST_NAME="[ w\o flags ]" FLAGS="" exec_test_obj_file_cpp_m32
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_obj_file_cpp_m32
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_obj_file_cpp_m32
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_obj_file_cpp_m32
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_obj_file_cpp_m32
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_obj_file_cpp_m32
+
+echo "[ OBJECT FILE CPP TESTS 64 ]"
+FLAGS="" TEST_NAME="[ w/o flags ]" exec_test_obj_file_cpp_m64
+FLAGS="-a" TEST_NAME="[ -a flag ]" exec_test_obj_file_cpp_m64
+FLAGS="-g" TEST_NAME="[ -g flag ]" exec_test_obj_file_cpp_m64
+FLAGS="-u" TEST_NAME="[ -u flag ]" exec_test_obj_file_cpp_m64
+FLAGS="-r" TEST_NAME="[ -r flag ]" exec_test_obj_file_cpp_m64
+FLAGS="-p" TEST_NAME="[ -p flag ]" exec_test_obj_file_cpp_m64
+
+echo "[ EXEC FILE TESTS 32 ]"
+TEST_NAME="[ w/o flags ]" FLAGS="" exec_test_binary_c_m32
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_binary_c_m32
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_binary_c_m32
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_binary_c_m32
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_binary_c_m32
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_binary_c_m32
+
+echo "[ EXEC FILE TESTS 64 ]"
+TEST_NAME="[ w/o flags ]" FLAGS="" exec_test_binary_c_m64
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_binary_c_m64
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_binary_c_m64
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_binary_c_m64
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_binary_c_m64
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_binary_c_m64
+
+echo "[ EXEC FILE CPP TESTS 32 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_binary_cpp_m32
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_binary_cpp_m32
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_binary_cpp_m32
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_binary_cpp_m32
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_binary_cpp_m32
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_binary_cpp_m32
+
+echo "[ EXEC FILE CPP TESTS 64 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_binary_cpp_m64
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_binary_cpp_m64
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_binary_cpp_m64
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_binary_cpp_m64
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_binary_cpp_m64
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_binary_cpp_m64
+
+echo "[ SO FILE TESTS 32 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_so_c_m32
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_so_c_m32
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_so_c_m32
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_so_c_m32
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_so_c_m32
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_so_c_m32
+
+echo "[ SO FILE TESTS 64 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_so_c_m64
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_so_c_m64
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_so_c_m64
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_so_c_m64
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_so_c_m64
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_so_c_m64
+
+echo "[ SO FILE CPP TESTS 32 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_so_cpp_m32
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_so_cpp_m32
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_so_cpp_m32
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_so_cpp_m32
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_so_cpp_m32
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_so_cpp_m32
+
+echo "[ SO FILE CPP TESTS 64 ]"
+TEST_NAME="[ w/o flags ]" FLAGS="" exec_test_so_cpp_m64
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_so_cpp_m64
+TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_so_cpp_m64
+TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_so_cpp_m64
+TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_so_cpp_m64
+TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_so_cpp_m64
+
+echo -n "[ MULTIPLE FILES ] ... \t"
+exec_multiple
+
+echo -n "[ MULTIPLE FILES W INVALID ] ... \t"
+exec_multiple_w_fails
 
 popd
 rm -frv $TEST_DIR

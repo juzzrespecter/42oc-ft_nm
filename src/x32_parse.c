@@ -88,9 +88,10 @@ static t_symbol *build_new_nm_symbol(t_Elf_Sym_wrapper *wr_sym, t_bin* bin, t_nm
     ft_nm_sym = ft_calloc(1, sizeof(t_symbol));
     if (!ft_nm_sym)
         log_and_exit(ERR_SYS, NULL, ctx);
+    ft_nm_sym->shndx = sym->st_shndx;
     ft_nm_sym->sym_value = (unsigned long)sym->st_value;
     ft_nm_sym->sym_type = get_nm_symbol(s);
-    ft_nm_sym->sym_name = &strtab[sym->st_name];
+    ft_nm_sym->sym_name = get_sym_name(shstrtab, strtab, type, sym->st_name);
 
     return ft_nm_sym;
 }
@@ -134,7 +135,7 @@ static void parser_elf_section_x32(t_bin *bin, t_nm *ctx)
 
         if (shdr->sh_type == SHT_STRTAB)
             parse_strtab(shdr, i, bin, ctx);
-        if (shdr->sh_type == SHT_SYMTAB || shdr->sh_type == SHT_DYNSYM)
+        if (shdr->sh_type == SHT_SYMTAB)
             parse_symbol_table(shdr, bin, ctx);
         i++;
     }

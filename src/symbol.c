@@ -37,55 +37,61 @@ static char get_nm_symbol_by_section_type(t_sym_info sym)
 {
   if (sym.sh_type == SHT_NOBITS && sym.sh_flags & (SHF_ALLOC | SHF_WRITE))
     return 'b';
-  if (sym.sh_type == SHT_PROGBITS && sym.sh_flags & SHF_ALLOC && sym.sh_flags & SHF_WRITE)
+  if (sym.sh_type != SHT_NOBITS && sym.sh_flags & SHF_ALLOC && sym.sh_flags & SHF_WRITE)
     return 'd';
-  if (sym.sh_type == SHT_PROGBITS && !(sym.sh_flags & (SHF_WRITE|SHF_EXECINSTR)) && sym.sh_flags & SHF_ALLOC)
+  if (sym.sh_type != SHT_NOBITS && !(sym.sh_flags & (SHF_WRITE|SHF_EXECINSTR)) && sym.sh_flags & SHF_ALLOC)
     return 'r';
   if (!(sym.sh_type == SHT_PROGBITS || sym.sh_type == SHT_NOBITS) && !(sym.sh_flags & SHF_WRITE))
     return 'n';
-  if (sym.sh_type == SHT_PROGBITS && sym.sh_flags & (SHF_ALLOC | SHF_EXECINSTR))
+  if (sym.sh_type != SHT_NOBITS && sym.sh_flags & (SHF_ALLOC | SHF_EXECINSTR))
     return 't';
   return 0;
 }
 
-char get_nm_symbol(t_sym_info sym)
+/**
+* Intentamos obtener el tipo de símbolo si este no forma parte de una sección o es débil.
+*/
+static char get_nm_symbol_undef_weak(t_sym_info sym)
 {
-  // Símbolos indirectos y débiles, secciones comunes y sin definir
   if (sym.shndx == SHN_COMMON)
     return 'C';
   if (sym.shndx == SHN_UNDEF && !(sym.bind == STB_WEAK))
     return 'U';
   if (sym.shndx == SHN_UNDEF && sym.bind == STB_WEAK && sym.type == STT_OBJECT)
     return 'v';
-  if (sym.shndx == SHN_UNDEF && sym.bind == STB_WEAK && sym.type == STT_FUNC)
+  if (sym.shndx == SHN_UNDEF && sym.bind == STB_WEAK)
     return 'w';
-  if (sym.shndx == SHN_UNDEF) // esto es mentira, identificar secciones indirectas
-    return 'I';
   if (sym.type == STT_GNU_IFUNC)
     return 'i';
-  //if (sym.type & STT_GNU_UNIQUE)
-  //  return 'u';
+  if (sym.bind == STB_GNU_UNIQUE)
+    return 'u';
   // agotamos tipos débiles
-  if (sym.bind & STB_WEAK && sym.type == STT_OBJECT)
+  if (sym.bind == STB_WEAK && sym.type == STT_OBJECT)
     return 'V';
-  if (sym.bind & STB_WEAK && sym.type == STT_FUNC)
+  if (sym.bind == STB_WEAK)
     return 'W';
-
   if (!(sym.bind == STB_GLOBAL || sym.bind == STB_LOCAL))
       return '?';
+  return 0;
+}
 
+char get_nm_symbol(t_sym_info sym)
+{
+  char c;
+
+  c = get_nm_symbol_undef_weak(sym);
+  if (c)
+    return c;
   if (sym.shndx == SHN_ABS)
     return IS_GLOBAL_SYM('a', sym.bind);
-  if (!(sym.shndx == SHN_UNDEF))
-    {
-    char c = get_nm_symbol_by_section_name(sym.sh_name);
-
-    if (!c)
-      c = get_nm_symbol_by_section_type(sym);
-    if (!c)
-      return '?';
-    return IS_GLOBAL_SYM(c, sym.bind);
-    }
+  if (sym.shndx == SHN_UNDEF)
+    return '?';
+   c = get_nm_symbol_by_section_name(sym.sh_name);
+   if (c)
+     return IS_GLOBAL_SYM(c, sym.bind);
+   c = get_nm_symbol_by_section_type(sym);
+   if (c)
+      return IS_GLOBAL_SYM(c, sym.bind);
     return '?';
 }
 

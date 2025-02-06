@@ -28,7 +28,7 @@ char* select_strtab(size_t index, t_bin* bin)
   if (selected_strtab == NULL)
     selected_strtab = shstrtab;
   return selected_strtab;
-} // esto debe ir a common
+}
 
 /**
  * Generamos un nuevo nodo cuyo contenido es una cobertura que incluye un puntero
@@ -129,24 +129,31 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char
   }
 }
 
-void print_value(unsigned long value, int class, int undef)
+char* get_sym_name(char *shstrtab, char *strtab, st_type type, int st_name)
 {
-  char buffer[16];
-  int  len = (class == ELFCLASS32) ? 8 : 16;
-  char pad = (undef) ? ' ' : '0';
+  if (type == STT_SECTION)
+    return &shstrtab[st_name];
+  return &strtab[st_name];
+}
 
-  ft_memset(buffer, pad, 16);
-  for (int i = 15; i >= 0 && value && !undef; value = value / 16)
-    buffer[i--] = "0123456789abcdef"[value % 16];
-  if (class == ELFCLASS32 && !undef)
-    ft_memmove(buffer, buffer + 8, 8);
-  write(STDOUT_FILENO, buffer, len);
+void print_value(char *sym_buffer, unsigned long value, int class, st_shndx shn)
+{
+  int  end = (class == ELFCLASS32) ? 8 : 16;
+  char pad = (shn == SHN_UNDEF) ? ' ' : '0';
+
+  ft_memset(sym_buffer, pad, 16);
+  for (int i = 15; i >= 0 && value && shn != SHN_UNDEF; value = value / 16)
+    sym_buffer[i--] = "0123456789abcdef"[value % 16];
+  if (class == ELFCLASS32 && shn != SHN_UNDEF)
+    ft_memmove(sym_buffer, sym_buffer + 8, 8);
+  sym_buffer[end] = 0;
 }
 
 void output_nm_symbols(t_bin* bin, t_nm* ctx)
 {
   t_list*   node;
   t_symbol* nm_sym;
+  char      sym_buffer[17];
 
   if (!(ctx->flags & NO_SORT_F) && ctx->flags & REV_SORT_F)
     sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strncmp);
@@ -154,21 +161,12 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
     sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strcnmp_rev);
   node = bin->b_nm_sym_lst;
 
-  if (ctx->b_lst->next) // temporal, guarro
-  {
-    write(STDOUT_FILENO, "\n", 1);
-    write(STDOUT_FILENO, bin->b_path, ft_strlen(bin->b_path));
-    write(STDOUT_FILENO, ":\n", 2);
-  }
+  if (ctx->b_lst->next)
+    printf("\n%s:\n", bin->b_path);
   for (; node != NULL; node = node->next)
   {
     nm_sym = (t_symbol*)node->content;
-
-    print_value(nm_sym->sym_value, bin->b_class, nm_sym->sym_type == 'U');
-    write(STDOUT_FILENO, " ", 1);
-    write(STDOUT_FILENO, &nm_sym->sym_type, 1);
-    write(STDOUT_FILENO, " ", 1);
-    write(STDOUT_FILENO, nm_sym->sym_name, ft_strlen(nm_sym->sym_name));
-    write(STDOUT_FILENO, "\n", 1);
+    print_value(sym_buffer,nm_sym->sym_value, bin->b_class, nm_sym->shndx);
+    printf("%s %c %s\n", sym_buffer, nm_sym->sym_type, nm_sym->sym_name);
   }
 }
