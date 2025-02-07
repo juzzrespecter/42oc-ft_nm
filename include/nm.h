@@ -10,7 +10,6 @@
 # include <sys/stat.h>
 # include <unistd.h>
 # include <stdbool.h>
-# include "debug.h"
 
 # define DEBUG_SYMS_F 1
 # define EXTRN_ONLY_F (1<<1)
@@ -268,7 +267,6 @@ void parser_elf_hdr_x64(t_bin*, t_nm*);
 t_list* build_new_shdr_node(void*, ei_class, t_nm*);
 t_list* build_new_sym_node(void*, ei_class, uint32_t, t_nm*);
 
-char* get_sym_name(char*, char*, st_type, int);
 char get_nm_symbol(t_sym_info);
 bool set_nm_visibility(char, t_sym_info);
 void output_nm_symbols(t_bin*, t_nm*);

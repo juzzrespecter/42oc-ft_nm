@@ -146,7 +146,7 @@ function exec_multiple() {
   rm -f logs exec_file_m32 obj_file.o
   echo "int main() { static int variable = 0; printf(\"Lib func call\n\"); }" | gcc -m32 -x c - -o exec_file_m32 2>/dev/null
   echo "const char *const_global_var=\"Const global var\";static int static_global_var; void undefined_func();" | g++ -x c++ - -c -o obj_file.o 2>/dev/null
-  ARGS="-a -r exec_file_m32 obj_file exec_file_m32"
+  ARGS="-a -r exec_file_m32 obj_file.o exec_file_m32"
   diff <($NM $ARGS 2>&1) <($FT_NM $ARGS 2>&1) >./logs
   if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
 }
@@ -156,7 +156,7 @@ function exec_multiple_w_fails() {
   echo "int main() { static int variable = 0; printf(\"Lib func call\n\"); }" | gcc -m32 -x c - -o exec_file_m32 2>/dev/null
   echo "const char *const_global_var=\"Const global var\";static int static_global_var; void undefined_func();" | g++ -x c++ - -c -o obj_file.o 2>/dev/null
   echo "text file" > text_file
-  ARGS="-a -r exec_file_m32 bad_file obj_file exec_file_m32 text_file"
+  ARGS="-a -r exec_file_m32 bad_file obj_file.o exec_file_m32 text_file"
   diff <($NM $ARGS 2>&1) <($FT_NM $ARGS 2>&1) >./logs
   if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
 }
@@ -202,22 +202,22 @@ function exec_test_binary_cpp_m64() {
 }
 
 function exec_test_so_c_m32() {
-  export TEST_NAME FLAGS CXX=gcc MAIN_FILE=$MAIN_C_FILE ARCH_FLAG=-m32 FILE_NAME=test_file TYPE='c'
+  export TEST_NAME FLAGS CXX=gcc OBJ_FILE=$OBJ_C_FILE ARCH_FLAG=-m32 FILE_NAME=test_file TYPE='c'
   exec_test_so
 }
 
 function exec_test_so_c_m64() {
-  export TEST_NAME FLAGS CXX=gcc MAIN_FILE=$MAIN_C_FILE ARCH_FLAG=-m64 FILE_NAME=test_file TYPE='c'
+  export TEST_NAME FLAGS CXX=gcc OBJ_FILE=$OBJ_C_FILE ARCH_FLAG=-m64 FILE_NAME=test_file TYPE='c'
   exec_test_so
 }
 
 function exec_test_so_cpp_m32() {
-  export TEST_NAME FLAGS CXX=g++ MAIN_FILE=$MAIN_CPP_FILE ARCH_FLAG=-m32 FILE_NAME=test_file TYPE='c++'
+  export TEST_NAME FLAGS CXX=g++ OBJ_FILE=$OBJ_CPP_FILE ARCH_FLAG=-m32 FILE_NAME=test_file TYPE='c++'
   exec_test_so
 }
 
 function exec_test_so_cpp_m64() {
-  export TEST_NAME FLAGS CXX=g++ MAIN_FILE=$MAIN_CPP_FILE ARCH_FLAG=-m64 FILE_NAME=test_file TYPE='c++'
+  export TEST_NAME FLAGS CXX=g++ OBJ_FILE=$OBJ_CPP_FILE ARCH_FLAG=-m64 FILE_NAME=test_file TYPE='c++'
   exec_test_so
 }
 
@@ -243,55 +243,70 @@ echo "[ TEST BAD FLAGS ]"
 echo "[ TEST EMPTY BINARY ]"
 # ...
 
-echo "[ OBJECT FILE TESTS 32 ]"
-TEST_NAME="[ w\o flags ]" FLAGS="" exec_test_obj_file_c_m32
+echo;echo;echo "[ OBJECT FILE TESTS 32 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_obj_file_c_m32
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_obj_file_c_m32
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_obj_file_c_m32
 TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_obj_file_c_m32
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_obj_file_c_m32
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_obj_file_c_m32
+echo
+TEST_NAME="[ -a -r -u flag ]" FLAGS="-a -r -u" exec_test_obj_file_c_m32
+TEST_NAME="[ -a -r -p flag ]" FLAGS="-a -r -p" exec_test_obj_file_c_m32
+TEST_NAME="[ -u -p -g flag ]" FLAGS="-u -p -g" exec_test_obj_file_c_m32
+TEST_NAME="[ -a -u flag    ]" FLAGS="-a -u" exec_test_obj_file_c_m32
 
-echo "[ OBJECT FILE TESTS 64 ]"
-FLAGS="" TEST_NAME="[ w\o flags ]" exec_test_obj_file_c_m64
+echo;echo;echo "[ OBJECT FILE TESTS 64 ]"
+FLAGS="" TEST_NAME="[ no flag ]" exec_test_obj_file_c_m64
 FLAGS="-a" TEST_NAME="[ -a flag ]" exec_test_obj_file_c_m64
 FLAGS="-g" TEST_NAME="[ -g flag ]" exec_test_obj_file_c_m64
 FLAGS="-u" TEST_NAME="[ -u flag ]" exec_test_obj_file_c_m64
 FLAGS="-r" TEST_NAME="[ -r flag ]" exec_test_obj_file_c_m64
 FLAGS="-p" TEST_NAME="[ -p flag ]" exec_test_obj_file_c_m64
+echo
+TEST_NAME="[ -a -r -u flag ]" FLAGS="-a -r -u" exec_test_obj_file_c_m64
+TEST_NAME="[ -a -r -p flag ]" FLAGS="-a -r -p" exec_test_obj_file_c_m64
+TEST_NAME="[ -u -p -g flag ]" FLAGS="-u -p -g" exec_test_obj_file_c_m64
+TEST_NAME="[ -a -u flag    ]" FLAGS="-a -u" exec_test_obj_file_c_m64
 
-echo "[ OBJECT FILE CPP TESTS 32 ]"
-TEST_NAME="[ w\o flags ]" FLAGS="" exec_test_obj_file_cpp_m32
+echo;echo;echo "[ OBJECT FILE CPP TESTS 32 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_obj_file_cpp_m32
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_obj_file_cpp_m32
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_obj_file_cpp_m32
 TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_obj_file_cpp_m32
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_obj_file_cpp_m32
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_obj_file_cpp_m32
+echo
+TEST_NAME="[ -a -r -u flag ]" FLAGS="-a -r -u" exec_test_obj_file_cpp_m32
+TEST_NAME="[ -a -r -p flag ]" FLAGS="-a -r -p" exec_test_obj_file_cpp_m32
+TEST_NAME="[ -u -p -g flag ]" FLAGS="-u -p -g" exec_test_obj_file_cpp_m32
+TEST_NAME="[ -a -u flag    ]" FLAGS="-a -u" exec_test_obj_file_cpp_m32
 
-echo "[ OBJECT FILE CPP TESTS 64 ]"
-FLAGS="" TEST_NAME="[ w/o flags ]" exec_test_obj_file_cpp_m64
+echo;echo;echo "[ OBJECT FILE CPP TESTS 64 ]"
+FLAGS="" TEST_NAME="[ no flag ]" exec_test_obj_file_cpp_m64
 FLAGS="-a" TEST_NAME="[ -a flag ]" exec_test_obj_file_cpp_m64
 FLAGS="-g" TEST_NAME="[ -g flag ]" exec_test_obj_file_cpp_m64
 FLAGS="-u" TEST_NAME="[ -u flag ]" exec_test_obj_file_cpp_m64
 FLAGS="-r" TEST_NAME="[ -r flag ]" exec_test_obj_file_cpp_m64
 FLAGS="-p" TEST_NAME="[ -p flag ]" exec_test_obj_file_cpp_m64
 
-echo "[ EXEC FILE TESTS 32 ]"
-TEST_NAME="[ w/o flags ]" FLAGS="" exec_test_binary_c_m32
+echo;echo;echo "[ EXEC FILE TESTS 32 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_binary_c_m32
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_binary_c_m32
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_binary_c_m32
 TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_binary_c_m32
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_binary_c_m32
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_binary_c_m32
 
-echo "[ EXEC FILE TESTS 64 ]"
-TEST_NAME="[ w/o flags ]" FLAGS="" exec_test_binary_c_m64
+echo;echo;echo "[ EXEC FILE TESTS 64 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_binary_c_m64
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_binary_c_m64
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_binary_c_m64
 TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_binary_c_m64
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_binary_c_m64
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_binary_c_m64
 
-echo "[ EXEC FILE CPP TESTS 32 ]"
+echo;echo;echo "[ EXEC FILE CPP TESTS 32 ]"
 TEST_NAME="[ no flag ]" FLAGS="" exec_test_binary_cpp_m32
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_binary_cpp_m32
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_binary_cpp_m32
@@ -299,7 +314,7 @@ TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_binary_cpp_m32
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_binary_cpp_m32
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_binary_cpp_m32
 
-echo "[ EXEC FILE CPP TESTS 64 ]"
+echo;echo;echo "[ EXEC FILE CPP TESTS 64 ]"
 TEST_NAME="[ no flag ]" FLAGS="" exec_test_binary_cpp_m64
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_binary_cpp_m64
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_binary_cpp_m64
@@ -307,7 +322,7 @@ TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_binary_cpp_m64
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_binary_cpp_m64
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_binary_cpp_m64
 
-echo "[ SO FILE TESTS 32 ]"
+echo;echo;echo "[ SO FILE TESTS 32 ]"
 TEST_NAME="[ no flag ]" FLAGS="" exec_test_so_c_m32
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_so_c_m32
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_so_c_m32
@@ -315,7 +330,7 @@ TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_so_c_m32
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_so_c_m32
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_so_c_m32
 
-echo "[ SO FILE TESTS 64 ]"
+echo;echo;echo "[ SO FILE TESTS 64 ]"
 TEST_NAME="[ no flag ]" FLAGS="" exec_test_so_c_m64
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_so_c_m64
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_so_c_m64
@@ -323,7 +338,7 @@ TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_so_c_m64
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_so_c_m64
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_so_c_m64
 
-echo "[ SO FILE CPP TESTS 32 ]"
+echo;echo;echo "[ SO FILE CPP TESTS 32 ]"
 TEST_NAME="[ no flag ]" FLAGS="" exec_test_so_cpp_m32
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_so_cpp_m32
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_so_cpp_m32
@@ -331,19 +346,19 @@ TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_so_cpp_m32
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_so_cpp_m32
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_so_cpp_m32
 
-echo "[ SO FILE CPP TESTS 64 ]"
-TEST_NAME="[ w/o flags ]" FLAGS="" exec_test_so_cpp_m64
+echo;echo;echo "[ SO FILE CPP TESTS 64 ]"
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_so_cpp_m64
 TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_so_cpp_m64
 TEST_NAME="[ -g flag ]" FLAGS="-g" exec_test_so_cpp_m64
 TEST_NAME="[ -u flag ]" FLAGS="-u" exec_test_so_cpp_m64
 TEST_NAME="[ -r flag ]" FLAGS="-r" exec_test_so_cpp_m64
 TEST_NAME="[ -p flag ]" FLAGS="-p" exec_test_so_cpp_m64
 
-echo -n "[ MULTIPLE FILES ] ... \t"
+echo;echo;echo -n -e "[ MULTIPLE FILES ]           ... "
 exec_multiple
 
-echo -n "[ MULTIPLE FILES W INVALID ] ... \t"
+echo;echo;echo -n -e "[ MULTIPLE FILES W INVALID ] ... "
 exec_multiple_w_fails
 
 popd
-rm -frv $TEST_DIR
+#rm -frv $TEST_DIR

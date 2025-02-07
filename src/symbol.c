@@ -101,7 +101,7 @@ bool set_nm_visibility(char flags, t_sym_info v)
     return false;
   if (flags & UNDEF_ONLY_F && v.shndx != SHN_UNDEF)
     return false;
-  if (flags & EXTRN_ONLY_F && v.bind != STB_GLOBAL)
+  if (flags & EXTRN_ONLY_F && v.bind != STB_GLOBAL && v.bind != STB_WEAK)
     return false;
   return true;
 }

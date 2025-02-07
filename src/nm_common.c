@@ -129,13 +129,6 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char
   }
 }
 
-char* get_sym_name(char *shstrtab, char *strtab, st_type type, int st_name)
-{
-  if (type == STT_SECTION)
-    return &shstrtab[st_name];
-  return &strtab[st_name];
-}
-
 void print_value(char *sym_buffer, unsigned long value, int class, st_shndx shn)
 {
   int  end = (class == ELFCLASS32) ? 8 : 16;

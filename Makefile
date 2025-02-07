@@ -7,8 +7,7 @@ SRC := nm.c \
        elf_parser.c \
        symbol.c \
        x32_parse.c \
-       x64_parse.c \
-       debug.c
+       x64_parse.c
 
 INCLUDE := nm.h
 
@@ -40,10 +39,10 @@ NAME := ft_nm
 all: ${NAME}
 
 ${NAME}: ${OBJ} ${LIBFT}
-	${CC} ${CFLAGS} $^ -o $@ ${IFLAGS} ${LFLAGS} ${_NM_DEBUG}
+	${CC} ${CFLAGS} $^ -o $@ ${IFLAGS} ${LFLAGS}
 
 ${OBJ_DIR}%.o:  ${SRC_DIR}%.c | ${OBJ_DIR}
-	${CC} ${CFLAGS} -c ${SRC_DIR}${notdir $<} -o $@ ${IFLAGS} ${_NM_DEBUG}
+	${CC} ${CFLAGS} -c ${SRC_DIR}${notdir $<} -o $@ ${IFLAGS}
 
 ${OBJ_DIR}:
 	mkdir -v ${OBJ_DIR}
@@ -61,8 +60,11 @@ testo:
 	echo ${OBJ}
 
 debug: fclean
-	${MAKE} all CFLAGS="${CFLAGS} -g3 -fsanitize=address" _NM_DEBUG="-D _NM_DEBUG=1"
+	${MAKE} all CFLAGS="${CFLAGS} -g3 -fsanitize=address"
+
+test:
+	bash tests.sh
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re test

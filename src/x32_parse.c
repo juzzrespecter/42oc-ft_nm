@@ -73,7 +73,7 @@ static t_symbol *build_new_nm_symbol(t_Elf_Sym_wrapper *wr_sym, t_bin* bin, t_nm
     st_bind bind = ELF64_ST_BIND(sym->st_info);
     st_type type = ELF64_ST_TYPE(sym->st_info);
     if (shdr)
-        sh_name = &shstrtab[shdr->sh_link];
+        sh_name = &shstrtab[shdr->sh_name];
 
     t_sym_info s = {
         .type = type,
@@ -91,7 +91,7 @@ static t_symbol *build_new_nm_symbol(t_Elf_Sym_wrapper *wr_sym, t_bin* bin, t_nm
     ft_nm_sym->shndx = sym->st_shndx;
     ft_nm_sym->sym_value = (unsigned long)sym->st_value;
     ft_nm_sym->sym_type = get_nm_symbol(s);
-    ft_nm_sym->sym_name = get_sym_name(shstrtab, strtab, type, sym->st_name);
+    ft_nm_sym->sym_name = (type == STT_SECTION) ? sh_name : &strtab[sym->st_name];
 
     return ft_nm_sym;
 }
