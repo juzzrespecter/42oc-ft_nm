@@ -75,6 +75,10 @@ static char get_nm_symbol_undef_weak(t_sym_info sym)
   return 0;
 }
 
+
+/**
+* Punto de entrada del análisis y obtención del tipo de símbolo del binario.
+*/
 char get_nm_symbol(t_sym_info sym)
 {
   char c;
@@ -95,6 +99,9 @@ char get_nm_symbol(t_sym_info sym)
     return '?';
 }
 
+/**
+* Filtramos la creación del símbolo en base a las flags seteadas en cli.
+*/
 bool set_nm_visibility(char flags, t_sym_info v)
 {
   if (!(flags & DEBUG_SYMS_F) && (v.type == STT_SECTION || v.type == STT_FILE))

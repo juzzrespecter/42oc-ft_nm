@@ -59,6 +59,10 @@ fclean: clean
 testo:
 	echo ${OBJ}
 
+up:
+	docker build . -t nm-sandbox
+	docker run --name nm-sandbox -it -v .:/nm nm-sandbox
+
 debug: fclean
 	${MAKE} all CFLAGS="${CFLAGS} -g3 -fsanitize=address"
 

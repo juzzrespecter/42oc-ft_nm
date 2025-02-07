@@ -11,11 +11,6 @@ static error __file_validate_type(t_stat* stat)
   return NO_ERR;
 }
 
-// nm: Warning: '/dev/urandom' is not an ordinary file
-
-/**
- * Parseamos argumentos, iniciamos la lista con los archivos a enemear.
- */
 int main(int argc, char* argv[])
 {
   t_nm    ctx;
