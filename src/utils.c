@@ -6,7 +6,8 @@ static const char* reason[] = {
   "no symbols",
   "no such file",
   "is a directory",
-  "file format not recognized"
+  "file format not recognized",
+  "no symbols"
 };
 
 static void del_strtab(void *ptr)

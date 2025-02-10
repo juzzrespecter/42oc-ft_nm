@@ -235,7 +235,8 @@ echo "[ TEST FLAGS NO ARGS ]"
 $FT_NM -a -g -u
 
 echo "[ TEST FORMAT NOT RECOGNIZED ]"
-# ...
+cat /dev/random | head -50 > file_bad_format
+$FT_NM file_bad_format
 
 echo "[ TEST BAD FLAGS ]"
 # ...

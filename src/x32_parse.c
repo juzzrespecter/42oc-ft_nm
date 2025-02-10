@@ -159,5 +159,6 @@ void parser_elf_hdr_x32(t_bin* bin, t_nm* ctx)
     bin->shstrndx = ((t_Elf32_Hdr*)hdr_ptr)->e_shstrndx;
 
     parser_elf_section_x32(bin, ctx);
+    // control de existencia de simbolos
     parse_symbols_to_nm_fmt_x32(bin, ctx);
 }

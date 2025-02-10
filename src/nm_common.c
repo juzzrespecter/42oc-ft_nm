@@ -83,7 +83,7 @@ t_list* build_new_shdr_node(void* shdr, ei_class class, t_nm* ctx)
   return shdr_node;
 }
 
-static int ft_strcnmp_rev(const char* a, const char* b, size_t len)
+static int ft_strncmp_rev(const char* a, const char* b, size_t len)
 {
   return -1 * ft_strncmp(a, b, len);
 }
@@ -100,7 +100,7 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char
   {
     node = *alst;
     prev = *alst;
-    while (node != NULL)
+    while (node)
     {
       next = node->next;
       if (next == NULL)
@@ -114,22 +114,24 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char
           *alst = next;
           node->next = (*alst)->next;
           (*alst)->next = node;
+          prev = next;
         }
         else
         {
           prev->next = next;
           node->next = next->next;
           next->next = node;
+          prev = next;
         }
+        continue ;
       }
       prev = node;
-      next = next->next;
       node = node->next;
     }
   }
 }
 
-void print_value(char *sym_buffer, unsigned long value, int class, st_shndx shn)
+static void print_value(char *sym_buffer, unsigned long value, int class, st_shndx shn)
 {
   int  end = (class == ELFCLASS32) ? 8 : 16;
   char pad = (shn == SHN_UNDEF) ? ' ' : '0';
@@ -151,7 +153,7 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
   if (!(ctx->flags & NO_SORT_F) && ctx->flags & REV_SORT_F)
     sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strncmp);
   if (!(ctx->flags & NO_SORT_F) && !(ctx->flags & REV_SORT_F))
-    sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strcnmp_rev);
+    sort_symbols_alpha(&bin->b_nm_sym_lst, ft_strncmp_rev);
   node = bin->b_nm_sym_lst;
 
   if (ctx->b_lst->next)
