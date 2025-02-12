@@ -221,6 +221,11 @@ function exec_test_so_cpp_m64() {
   exec_test_so
 }
 
+function exec_test_no_symbols() {
+  diff <($NM $(which $NM) 2>&1) <($FT_NM $(which $NM) 2>&1) >./logs
+  if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
+}
+
 make
 
 mkdir -vp $TEST_DIR
@@ -405,6 +410,8 @@ exec_multiple
 
 echo;echo;echo -n -e "[ MULTIPLE FILES W INVALID ] ... "
 exec_multiple_w_fails
+
+echo;echo;echo -n -e "[ NO SYMBOLS ]               ... "
 
 popd
 rm -frv $TEST_DIR

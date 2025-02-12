@@ -36,13 +36,13 @@ static bool __parser_elf_header_ident(t_bin* bin, t_nm *ctx)
        log_and_exit(ERR_SYS, NULL, ctx);
      else
      {
-        log_error(ERR_NO_FORMAT, bin->b_path);
+        log_error(ERR_NO_FORMAT, bin->b_path, ctx);
         return false;
      }
   }
   if (__parser_identity_fields(ei_ident))
   {
-    log_error(ERR_NO_FORMAT, bin->b_path);
+    log_error(ERR_NO_FORMAT, bin->b_path, ctx);
     return false;
   }
   bin->b_class = ei_ident[EI_CLASS];

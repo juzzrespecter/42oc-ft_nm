@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     ft_bzero(&stat, sizeof(t_stat));
     if (bin->b_fd < 0 || fstat(bin->b_fd, &stat) == -1)
     {
-      log_error(ERR_SYS, bin->b_path);
+      log_error(ERR_SYS, bin->b_path, &ctx);
       b_node = b_node->next;
       continue;
     }
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
     rt = __file_validate_type(&stat);
     if (rt != NO_ERR)
     {
-      log_error(rt, bin->b_path);
+      log_error(rt, bin->b_path, &ctx);
       b_node = b_node->next;
       continue;
     }
@@ -49,6 +49,5 @@ int main(int argc, char* argv[])
     bin->b_src = NULL;
     b_node = b_node->next;
   }
-  clean_context(&ctx);
-  return (EXIT_SUCCESS);
+  return clean_context(&ctx);
 }

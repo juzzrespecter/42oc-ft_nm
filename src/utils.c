@@ -6,8 +6,7 @@ static const char* reason[] = {
   "no symbols",
   "no such file",
   "is a directory",
-  "file format not recognized",
-  "no symbols"
+  "file format not recognized"
 };
 
 static void del_strtab(void *ptr)
@@ -60,7 +59,7 @@ int clean_context(t_nm* ctx)
   return program_state;
 }
 
-void log_error(error code, char* arg)
+void log_info(error code, char* arg)
 {
   char buffer[50] = {0};
 
@@ -68,17 +67,26 @@ void log_error(error code, char* arg)
     sprintf(buffer, "ft_nm: '%.40s'", arg);
   else
     sprintf(buffer, "ft_nm");
+  dprintf(STDOUT_FILENO, "%s: %s\n", buffer, reason[code]);
+}
+
+void log_error(error code, char* arg, t_nm* ctx)
+{
+  char buffer[50] = {0};
+
+  ctx->state = 1;
+  if (arg)
+    sprintf(buffer, "ft_nm: '%.40s'", arg);
+  else
+    sprintf(buffer, "ft_nm");
   if (code == ERR_SYS)
     return perror(buffer);
-  write(STDERR_FILENO, buffer, ft_strlen(buffer));
-  write(STDERR_FILENO, ": ", 2);
-  write(STDERR_FILENO, reason[code], ft_strlen(reason[code]));
-  write(STDERR_FILENO, "\n", 1);
+  dprintf(STDERR_FILENO, "%s: %s\n", buffer, reason[code]);
 }
 
 void log_and_exit(error err, char* arg, t_nm* ctx)
 {
-  log_error(err, arg);
+  log_error(err, arg, ctx);
   clean_context(ctx);
   exit(EXIT_FAILURE);
 }

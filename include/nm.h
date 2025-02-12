@@ -271,7 +271,8 @@ char get_nm_symbol(t_sym_info);
 bool set_nm_visibility(char, t_sym_info);
 void output_nm_symbols(t_bin*, t_nm*);
 
-void log_error(error, char*);
+void log_info(error, char*);
+void log_error(error, char*, t_nm*);
 int clean_context(t_nm*);
 void log_and_exit(error, char*, t_nm*);
 
