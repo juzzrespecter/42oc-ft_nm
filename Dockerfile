@@ -5,4 +5,4 @@ RUN apt update && \
 
 WORKDIR /nm
 
-ENTRYPOINT ["/bin/bash"]
+CMD ["/bin/bash"]
