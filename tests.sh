@@ -161,6 +161,16 @@ function exec_multiple_w_fails() {
   if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
 }
 
+function exec_test_empty_file_m32() {
+  export TEST_NAME FLAGS CXX=gcc OBJ_FILE=$EMPTY_FILE ARCH_FLAG=-m32 FILE_NAME=test_file.o TYPE='c'
+  exec_test_obj_file
+}
+
+function exec_test_empty_file_m64() {
+  export TEST_NAME FLAGS CXX=gcc OBJ_FILE=$EMPTY_FILE ARCH_FLAG=-m32 FILE_NAME=test_file.o TYPE='c'
+  exec_test_obj_file
+}
+
 function exec_test_obj_file_c_m32() {
   export TEST_NAME FLAGS CXX=gcc OBJ_FILE=$OBJ_C_FILE ARCH_FLAG=-m32 FILE_NAME=test_file.o TYPE='c'
   exec_test_obj_file
@@ -226,7 +236,7 @@ function exec_test_no_symbols() {
   if [ "$?" -eq 1 ]; then echo -e "$RED\t[ ko ]$END";cat logs; else echo -e "$GREEN\t[ ok ]$END"; fi
 }
 
-make
+make re
 
 mkdir -vp $TEST_DIR
 pushd $TEST_DIR
@@ -244,10 +254,13 @@ cat /dev/random | head -50 > file_bad_format
 $FT_NM file_bad_format
 
 echo "[ TEST BAD FLAGS ]"
-# ...
+$FT_NM -h -o -l -a
 
 echo "[ TEST EMPTY BINARY ]"
-# ...
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_empty_file_m32
+TEST_NAME="[ no flag ]" FLAGS="" exec_test_empty_file_m64
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_empty_file_m32
+TEST_NAME="[ -a flag ]" FLAGS="-a" exec_test_empty_file_m64
 
 echo;echo;echo "[ OBJECT FILE TESTS 32 ]"
 TEST_NAME="[ no flag ]" FLAGS="" exec_test_obj_file_c_m32

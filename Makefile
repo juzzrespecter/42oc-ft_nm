@@ -61,7 +61,11 @@ testo:
 
 up:
 	docker build . -t nm-sandbox
-	docker run --name nm-sandbox -it -v .:/nm nm-sandbox
+	docker run --name nm-sandbox -it -v .:/nm nm-sandbox bash -c "make test"
+
+down:
+	docker stop nm-sandbox
+	docker rm nm-sandbox
 
 debug: fclean
 	${MAKE} all CFLAGS="${CFLAGS} -g3 -fsanitize=address"
@@ -71,4 +75,4 @@ test:
 
 re: fclean all
 
-.PHONY: all clean fclean re test
+.PHONY: all clean fclean re test up down debug

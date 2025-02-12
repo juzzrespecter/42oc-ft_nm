@@ -270,6 +270,7 @@ t_list* build_new_sym_node(void*, ei_class, uint32_t, t_nm*);
 char get_nm_symbol(t_sym_info);
 bool set_nm_visibility(char, t_sym_info);
 void output_nm_symbols(t_bin*, t_nm*);
+int validate_nm_symbol_string_table(t_Elf_Sym_wrapper*, t_bin*);
 
 void log_info(error, char*);
 void log_error(error, char*, t_nm*);

@@ -131,7 +131,7 @@ static void sort_symbols_alpha(t_list** alst, int (*cmp)(const char*, const char
   }
 }
 
-static void print_value(char *sym_buffer, unsigned long value, int class, st_shndx shn)
+static void format_value(char *sym_buffer, unsigned long value, int class, st_shndx shn)
 {
   int  end = (class == ELFCLASS32) ? 8 : 16;
   char pad = (shn == SHN_UNDEF) ? ' ' : '0';
@@ -144,6 +144,11 @@ static void print_value(char *sym_buffer, unsigned long value, int class, st_shn
   sym_buffer[end] = 0;
 }
 
+/**
+ * El que printa las cosas. Genstionamos odenacion aqui.
+ * @param bin
+ * @param ctx
+ */
 void output_nm_symbols(t_bin* bin, t_nm* ctx)
 {
   t_list*   node;
@@ -161,7 +166,21 @@ void output_nm_symbols(t_bin* bin, t_nm* ctx)
   for (; node != NULL; node = node->next)
   {
     nm_sym = (t_symbol*)node->content;
-    print_value(sym_buffer,nm_sym->sym_value, bin->b_class, nm_sym->shndx);
+    format_value(sym_buffer,nm_sym->sym_value, bin->b_class, nm_sym->shndx);
     printf("%s %c %s\n", sym_buffer, nm_sym->sym_type, nm_sym->sym_name);
   }
+}
+
+/**
+ * Validamos que los valores de indices de table de secciones
+ * devuelven tablas validas.
+ * @param s ;; cobertura del simbolo sin formato
+ * @param b ;; contexto del binario
+ * @return ;; true if valid
+ */
+int validate_nm_symbol_string_table(t_Elf_Sym_wrapper* s, t_bin *b) {
+  char *shstrtab = select_strtab(b->shstrndx, b);
+  char *strtab = select_strtab(s->sh_link, b);
+
+  return (shstrtab && strtab);
 }

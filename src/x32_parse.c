@@ -102,7 +102,11 @@ static void parse_symbols_to_nm_fmt_x32(t_bin *bin, t_nm *ctx) {
     t_list *nm_sym_node;
 
     for (; node != NULL; node = node->next) {
-        // hay que checkear las condiciones de fallo (en tablas de texto)
+        if (!validate_nm_symbol_string_table(node->content, bin)) {
+            log_error(ERR_NO_FORMAT, bin->b_path, ctx);;
+            return;
+        }
+
         nm_sym = build_new_nm_symbol((t_Elf_Sym_wrapper *) node->content, bin, ctx);
         if (!nm_sym)
             continue ;
