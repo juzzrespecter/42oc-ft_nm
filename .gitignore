@@ -1,16 +1,8 @@
-# binary
-ft_nm
+*
 
-# object files
-obj
-*/*.o
-
-# local docs
-notas.md
-*.png
-
-# ide
-.idea
-
-# test
-bin
+!src
+!Makefile
+!.gitignore
+!include
+!tests.sh
+!Dockerfile

@@ -16,6 +16,7 @@ INCLUDE_DIR := include/ \
                libft/includes/
 OBJ_DIR := obj/
 OBJ     := ${patsubst %.c, ${OBJ_DIR}%.o, ${SRC}}
+DEPS 	:= ${OBJ:%.o=%.d}
 
 LIBFT_DIR := libft/
 
@@ -23,8 +24,9 @@ vpath %.c src/
 vpath %.h include/
 
 # ~ Compilation variables ~
-CC := gcc
-CFLAGS = -Wall -Werror -Wextra
+CC       := gcc
+CFLAGS   := -Wall -Werror -Wextra
+CPPFLAGS := -MMD
 IFLAGS := $(addprefix -I, ${INCLUDE_DIR})
 LFLAGS := -lft -L${LIBFT_DIR}
 
@@ -42,7 +44,7 @@ ${NAME}: ${OBJ} ${LIBFT}
 	${CC} ${CFLAGS} $^ -o $@ ${IFLAGS} ${LFLAGS}
 
 ${OBJ_DIR}%.o:  ${SRC_DIR}%.c | ${OBJ_DIR}
-	${CC} ${CFLAGS} -c ${SRC_DIR}${notdir $<} -o $@ ${IFLAGS}
+	${CC} ${CFLAGS} ${CPPFLAGS} -c ${SRC_DIR}${notdir $<} -o $@ ${IFLAGS}
 
 ${OBJ_DIR}:
 	mkdir -v ${OBJ_DIR}
@@ -56,9 +58,6 @@ clean:
 fclean: clean
 	${RM} ${NAME}
 
-testo:
-	echo ${OBJ}
-
 up:
 	docker build . -t nm-sandbox
 	docker run --name nm-sandbox -it -v .:/nm nm-sandbox bash -c "make test"
@@ -67,12 +66,14 @@ down:
 	docker stop nm-sandbox
 	docker rm nm-sandbox
 
-debug: fclean
-	${MAKE} all CFLAGS="${CFLAGS} -g3 -fsanitize=address"
+debug: CFLAGS += -fsanitize=address -g3
+debug: re
 
 test:
 	bash tests.sh
 
 re: fclean all
+
+-include $(DEPS)
 
 .PHONY: all clean fclean re test up down debug

@@ -425,6 +425,7 @@ echo;echo;echo -n -e "[ MULTIPLE FILES W INVALID ] ... "
 exec_multiple_w_fails
 
 echo;echo;echo -n -e "[ NO SYMBOLS ]               ... "
+exec_test_no_symbols
 
 popd
 rm -frv $TEST_DIR

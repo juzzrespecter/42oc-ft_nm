@@ -41,7 +41,7 @@ static char get_nm_symbol_by_section_type(t_sym_info sym)
     return 'd';
   if (sym.sh_type != SHT_NOBITS && !(sym.sh_flags & (SHF_WRITE|SHF_EXECINSTR)) && sym.sh_flags & SHF_ALLOC)
     return 'r';
-  if (!(sym.sh_type == SHT_PROGBITS || sym.sh_type == SHT_NOBITS) && !(sym.sh_flags & SHF_WRITE))
+  if (!(sym.sh_flags & (SHF_ALLOC | SHF_WRITE | SHF_EXECINSTR)))
     return 'n';
   if (sym.sh_type != SHT_NOBITS && sym.sh_flags & (SHF_ALLOC | SHF_EXECINSTR))
     return 't';
