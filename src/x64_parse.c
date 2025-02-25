@@ -138,7 +138,7 @@ static void *parser_elf_section_x64(t_bin *bin, t_nm *ctx) {
   if (!bin->b_elf_shdr)
     log_error(ERR_NO_FORMAT, bin->b_path, ctx);
   if (bin->b_elf_shdr && !bin->b_sym_lst)
-    log_info(ERR_NOSYM, bin->b_path);
+    log_info(ERR_NOSYM, bin, ctx);
   return bin->b_sym_lst;
 }
 

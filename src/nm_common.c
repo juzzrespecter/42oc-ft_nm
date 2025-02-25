@@ -145,9 +145,9 @@ static void format_value(char *sym_buffer, unsigned long value, int class, st_sh
 }
 
 /**
- * El que printa las cosas. Genstionamos odenacion aqui.
- * @param bin
- * @param ctx
+ * El que printa las cosas. Gestionamos ordenacion aqui.
+ * @param bin ;; contexto binario
+ * @param ctx ;; contexto programa
  */
 void output_nm_symbols(t_bin* bin, t_nm* ctx)
 {

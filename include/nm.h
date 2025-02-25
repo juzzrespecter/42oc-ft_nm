@@ -32,7 +32,8 @@ typedef enum e_error
   ERR_NO_FILE = 1,
   ERR_IS_DIR = 2,
   ERR_NO_FORMAT = 3,
-  ERR_SYS = 4
+  ERR_BAD_FILE = 4,
+  ERR_SYS = 5
 } error;
 
 /* ELF file identification */
@@ -272,8 +273,8 @@ bool set_nm_visibility(char, t_sym_info);
 void output_nm_symbols(t_bin*, t_nm*);
 int validate_nm_symbol_string_table(t_Elf_Sym_wrapper*, t_bin*);
 
-void log_info(error, char*);
-void log_error(error, char*, t_nm*);
+void log_info(error, t_bin*, t_nm*);
+void *log_error(error, char*, t_nm*);
 int clean_context(t_nm*);
 void log_and_exit(error, char*, t_nm*);
 

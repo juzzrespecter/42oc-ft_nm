@@ -53,14 +53,16 @@ ${LIBFT}:
 	make -C ${LIBFT_DIR}
 
 clean:
+	make clean -C ${LIBFT_DIR}
 	${RM} ${OBJ_DIR}
 
 fclean: clean
+	make fclean -C ${LIBFT_DIR}
 	${RM} ${NAME}
 
 up:
 	docker build . -t nm-sandbox
-	docker run --name nm-sandbox -it -v .:/nm nm-sandbox bash -c "make test"
+	docker run --name nm-sandbox -it -v .:/nm nm-sandbox
 
 down:
 	docker stop nm-sandbox

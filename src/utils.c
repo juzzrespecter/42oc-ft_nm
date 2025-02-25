@@ -6,7 +6,8 @@ static const char* reason[] = {
   "no symbols",
   "no such file",
   "is a directory",
-  "file format not recognized"
+  "file format not recognized",
+  "is not an ordinary file"
 };
 
 static void del_strtab(void *ptr)
@@ -59,29 +60,58 @@ int clean_context(t_nm* ctx)
   return program_state;
 }
 
-void log_info(error code, char* arg)
+static void *log_generate_buffer(char *arg)
 {
-  char buffer[50] = {0};
+  char  *buffer;
+  size_t buffer_len;
 
   if (arg)
-    sprintf(buffer, "ft_nm: '%.40s'", arg);
+    buffer_len = snprintf(NULL, 0, "ft_nm: '%s'", arg);
+  else
+    buffer_len = snprintf(NULL, 0, "ft_nm");
+  buffer = malloc((buffer_len + 1) * sizeof(char));
+  if (!buffer)
+    return NULL;
+  if (arg)
+    sprintf(buffer, "ft_nm: '%s'", arg);
   else
     sprintf(buffer, "ft_nm");
-  dprintf(STDOUT_FILENO, "%s: %s\n", buffer, reason[code]);
+  return buffer;
 }
 
-void log_error(error code, char* arg, t_nm* ctx)
+void log_info(error code, t_bin *bin, t_nm* ctx)
 {
-  char buffer[50] = {0};
+  char  *buffer = log_generate_buffer(bin->b_path);
+
+  if (!buffer)
+  {
+    perror("malloc");
+    clean_context(ctx);
+    exit(EXIT_FAILURE);
+  }
+  if (ctx->b_lst->next)
+    printf("\n%s:\n", bin->b_path);
+  dprintf(STDOUT_FILENO, "%s: %s\n", buffer, reason[code]);
+  free(buffer);
+}
+
+void *log_error(error code, char* arg, t_nm* ctx)
+{
+  char  *buffer = log_generate_buffer(arg);
 
   ctx->state = 1;
-  if (arg)
-    sprintf(buffer, "ft_nm: '%.40s'", arg);
-  else
-    sprintf(buffer, "ft_nm");
+  if (!buffer)
+  {
+    perror("malloc");
+    clean_context(ctx);
+    exit(EXIT_FAILURE);
+  }
   if (code == ERR_SYS)
-    return perror(buffer);
-  dprintf(STDERR_FILENO, "%s: %s\n", buffer, reason[code]);
+    perror(buffer);
+  else
+    dprintf(STDERR_FILENO, "%s: %s\n", buffer, reason[code]);
+  free(buffer);
+  return NULL;
 }
 
 void log_and_exit(error err, char* arg, t_nm* ctx)
