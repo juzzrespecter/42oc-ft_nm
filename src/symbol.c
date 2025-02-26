@@ -1,17 +1,16 @@
 # include "../include/nm.h"
 
+/* Debug section docs: https://gcc.gnu.org/wiki/DebugFission */
 static const t_st section_type[] =
 {
   {".bss", 'b'},
   {".data", 'd'},
-  {".data1", 'd'},
   {".debug", 'N'},
   {".text", 't'},
   {".fini", 't'},
   {".init", 't'},
   {".note", 'n'},
   {".rodata", 'r'},
-  {".rodata1", 'r'},
   {".sdata", 'g'},
   {".sbss", 's'},
   {".scommon", 'c'}
@@ -32,6 +31,7 @@ static char get_nm_symbol_by_section_name(char *sh_name)
 
 /**
 * Obtenemos el tipo de símbolo en base al tipo de sección en el que se encuentra.
+* No tenemos flag para secciones de debug, obtenemos por nombre y no alocacion.
 */
 static char get_nm_symbol_by_section_type(t_sym_info sym)
 {
@@ -41,6 +41,8 @@ static char get_nm_symbol_by_section_type(t_sym_info sym)
     return 'd';
   if (sym.sh_type != SHT_NOBITS && !(sym.sh_flags & (SHF_WRITE|SHF_EXECINSTR)) && sym.sh_flags & SHF_ALLOC)
     return 'r';
+  if (!(sym.sh_flags & SHF_ALLOC) && !ft_strncmp(sym.sh_name, ".debug", 6))
+    return 'N';
   if (!(sym.sh_flags & (SHF_ALLOC | SHF_WRITE | SHF_EXECINSTR)))
     return 'n';
   if (sym.sh_type != SHT_NOBITS && sym.sh_flags & (SHF_ALLOC | SHF_EXECINSTR))
@@ -90,13 +92,13 @@ char get_nm_symbol(t_sym_info sym)
     return IS_GLOBAL_SYM('a', sym.bind);
   if (sym.shndx == SHN_UNDEF)
     return '?';
-   c = get_nm_symbol_by_section_name(sym.sh_name);
-   if (c)
-     return IS_GLOBAL_SYM(c, sym.bind);
-   c = get_nm_symbol_by_section_type(sym);
-   if (c)
-      return IS_GLOBAL_SYM(c, sym.bind);
-    return '?';
+  c = get_nm_symbol_by_section_type(sym);
+  if (c)
+    return IS_GLOBAL_SYM(c, sym.bind);
+  c = get_nm_symbol_by_section_name(sym.sh_name);
+  if (c)
+    return IS_GLOBAL_SYM(c, sym.bind);
+  return '?';
 }
 
 /**

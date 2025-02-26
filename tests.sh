@@ -111,7 +111,7 @@ int funcion_debil_definida() {
 function exec_test_obj_file() {
   rm -f logs $FILE_NAME
   echo -n "Executing test $TEST_NAME ..."
-  cat << EOF | $CXX $ARCH_FLAG -x $TYPE - -c -o $FILE_NAME 2>/dev/null
+  cat << EOF | $CXX $ARCH_FLAG -x $TYPE - -c -g -o $FILE_NAME 2>/dev/null
 $OBJ_FILE
 EOF
   diff <($NM $FLAGS $FILE_NAME 2>&1) <($FT_NM $FLAGS $FILE_NAME 2>&1) >./logs

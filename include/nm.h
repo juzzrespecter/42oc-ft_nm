@@ -135,7 +135,7 @@ typedef enum e_sh_flags
 {
   SHF_WRITE = 1, // Data writable during process exec.
   SHF_ALLOC = (1 << 1), // Section occupies memory during process exec.
-  SHF_EXECINSTR = (1 << 2), // Executable machine isntructions
+  SHF_EXECINSTR = (1 << 2), // Executable machine instructions
   SHF_MERGE = (1 << 5), // May be merged to eliminate duplication
   SHF_STRING = (1 << 6), // Data elements in section consist of null-terminated char. strings
   SHF_INFO_LINK = (1 << 7), // sh_info holds a section header table index
